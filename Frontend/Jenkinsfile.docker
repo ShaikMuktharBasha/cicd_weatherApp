@@ -13,8 +13,7 @@ pipeline {
             steps {
                 echo 'Checking out source code...'
                 git branch: 'main',
-                    url: 'https://github.com/ShaikMukhtarBasha/cicd_weatherApp.git',
-                    credentialsId: 'github-credentials'
+                    url: 'https://github.com/ShaikMukhtarBasha/cicd_weatherApp.git'
             }
         }
 
