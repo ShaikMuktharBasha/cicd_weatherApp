@@ -75,7 +75,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: ./${{ matrix.service == 'backend' && 'Backend' || 'Frontend' }}
-        file: ./${{ matrix.service == 'backend' && 'Backend/Dockerfile' || 'Frontend/Dockerfile' }}
+        file: ./${{ matrix.service == 'backend' && 'Backend/Dockerfile.multi' || 'Frontend/Dockerfile' }}
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
