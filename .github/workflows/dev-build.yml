@@ -2,7 +2,7 @@ name: Development Build
 
 on:
   push:
-    branches: [ develop, feature/** ]
+    branches: [ main, develop, feature/** ]
     paths:
       - 'Frontend/**'
       - 'Backend/**'
