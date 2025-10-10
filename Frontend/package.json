@@ -4,14 +4,19 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "http-server . -p 3000 -c-1 --cors",
-    "start": "http-server . -p 3000 -c-1 --cors",
-    "serve": "http-server . -p 3000 -c-1 --cors"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "@emailjs/browser": "^4.4.1"
   },
   "devDependencies": {
-    "http-server": "^14.1.1"
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.0.8"
   }
 }
