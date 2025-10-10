@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: weather-app-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: weatherdb
+      MYSQL_USER: weatheruser
+      MYSQL_PASSWORD: weatherpass
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./Backend/src/main/resources/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./Backend/src/main/resources/db/data.sql:/docker-entrypoint-initdb.d/02-data.sql
+    networks:
+      - weather-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # Backend Service
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile.multi
+    container_name: weather-app-backend
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/weatherdb?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: weatheruser
+      SPRING_DATASOURCE_PASSWORD: weatherpass
+      SERVER_PORT: 8085
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - weather-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  # Frontend Service
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+      args:
+        BACKEND_URL: http://localhost:8085
+    container_name: weather-app-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      BACKEND_URL: http://localhost:8085
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - weather-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  # CI/CD Service (Jenkins)
+  cicd:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile.cicd
+    container_name: weather-app-cicd
+    ports:
+      - "8081:8080"  # Jenkins web UI
+      - "50000:50000"  # Jenkins agent port
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - .:/workspace:cached
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - JENKINS_OPTS=--httpPort=8080
+    networks:
+      - weather-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/login"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+    driver: local
+  jenkins_home:
+    driver: local
+
+networks:
+  weather-network:
+    driver: bridge

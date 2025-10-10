@@ -1,0 +1,62 @@
+name: Health Check
+
+on:
+  schedule:
+    # Run every 30 minutes
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+    inputs:
+      service_url:
+        description: 'Service URL to check'
+        required: false
+        default: 'http://localhost:3000'
+        type: string
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Health check
+      run: |
+        SERVICE_URL="${{ github.event.inputs.service_url || 'http://localhost:3000' }}"
+
+        echo "🔍 Checking Weather App health..."
+        echo "Service URL: $SERVICE_URL"
+
+        # Check if service is responding
+        if curl -f -s --max-time 30 "$SERVICE_URL" > /dev/null; then
+          echo "✅ Frontend is healthy"
+        else
+          echo "❌ Frontend is not responding"
+          exit 1
+        fi
+
+        # Check backend API health (if available)
+        BACKEND_URL="${SERVICE_URL//3000/8085}"
+        if curl -f -s --max-time 30 "$BACKEND_URL/actuator/health" > /dev/null 2>&1; then
+          echo "✅ Backend API is healthy"
+        else
+          echo "⚠️ Backend health check endpoint not available (this is normal for basic deployments)"
+        fi
+
+        echo "🎉 Health check completed successfully!"
+
+  notify-failure:
+    needs: health-check
+    runs-on: ubuntu-latest
+    if: failure()
+
+    steps:
+    - name: Send failure notification
+      run: |
+        echo "🚨 Weather App Health Check Failed!"
+        echo "Repository: ${{ github.repository }}"
+        echo "Check the application logs and restart if necessary."
+        echo ""
+        echo "Quick restart commands:"
+        echo "docker-compose -f docker-compose.multi.yml restart"
+        echo "docker-compose -f docker-compose.multi.yml logs"

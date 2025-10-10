@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Backend/Dockerfile
+    container_name: weather-app-all-in-one
+    ports:
+      - "8085:8085"  # Backend API
+      - "3000:3000"  # Frontend
+      - "3306:3306"  # MySQL Database
+      - "8081:8080"  # Jenkins web UI (from jenkins config)
+      - "8082:8080"  # Jenkins web UI (from cicd config)
+      - "50000:50000"  # Jenkins agent port
+    environment:
+      SERVER_PORT: 8085
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+networks:
+  app-network:
+    driver: bridge

@@ -1,0 +1,125 @@
+name: Production Deployment
+
+on:
+  workflow_run:
+    workflows: ["Deploy Weather App"]
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - staging
+      server_ip:
+        description: 'Server IP address (optional)'
+        required: false
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  REPO_NAME: ${{ github.event.repository.name }}
+  REPO_OWNER: ${{ github.event.repository.owner.login }}
+
+jobs:
+  deploy-production:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Generate deployment information
+      run: |
+        echo "🚀 Weather App Production Deployment"
+        echo "Repository: ${{ env.REPO_OWNER }}/${{ env.REPO_NAME }}"
+        echo "Environment: ${{ github.event.inputs.environment || 'production' }}"
+        echo "Registry: ${{ env.REGISTRY }}"
+        echo "Backend Image: ${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/${{ env.REPO_NAME }}/weather-backend:latest"
+        echo "Frontend Image: ${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/${{ env.REPO_NAME }}/weather-frontend:latest"
+        echo ""
+
+    - name: Create deployment script
+      run: |
+        cat > deploy-production.sh << 'EOF'
+        #!/bin/bash
+        set -e
+
+        # Weather App Production Deployment Script
+        # Generated for: ${{ env.REPO_OWNER }}/${{ env.REPO_NAME }}
+
+        echo "🐳 Weather App Production Deployment"
+        echo "===================================="
+
+        # Colors for output
+        RED='\033[0;31m'
+        GREEN='\033[0;32m'
+        YELLOW='\033[1;33m'
+        NC='\033[0m' # No Color
+
+        echo -e "${YELLOW}📋 Pulling latest Docker images...${NC}"
+        docker pull ${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/${{ env.REPO_NAME }}/weather-backend:latest
+        docker pull ${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/${{ env.REPO_NAME }}/weather-frontend:latest
+
+        echo -e "${YELLOW}🛑 Stopping existing containers...${NC}"
+        docker-compose -f docker-compose.multi.yml down || true
+
+        echo -e "${YELLOW}🧹 Cleaning up unused images...${NC}"
+        docker image prune -f
+
+        echo -e "${GREEN}🚀 Starting Weather App containers...${NC}"
+        docker-compose -f docker-compose.multi.yml up -d
+
+        echo -e "${YELLOW}⏳ Waiting for services to start...${NC}"
+        sleep 30
+
+        echo -e "${GREEN}🔍 Checking service health...${NC}"
+        docker-compose -f docker-compose.multi.yml ps
+
+        echo ""
+        echo -e "${GREEN}✅ Weather App Deployment Completed!${NC}"
+        echo "===================================="
+        echo -e "${GREEN}🌐 Frontend URL:${NC} http://localhost:3000"
+        echo -e "${GREEN}🔧 Backend API:${NC} http://localhost:8085"
+        echo -e "${GREEN}📊 Database:${NC} localhost:3306"
+        echo ""
+        echo -e "${YELLOW}📝 Useful commands:${NC}"
+        echo "  docker-compose -f docker-compose.multi.yml logs -f    # View logs"
+        echo "  docker-compose -f docker-compose.multi.yml restart   # Restart services"
+        echo "  docker-compose -f docker-compose.multi.yml down      # Stop services"
+        echo ""
+        echo -e "${GREEN}🎉 Deployment successful!${NC}"
+        EOF
+
+        chmod +x deploy-production.sh
+        echo "📋 Deployment script created: deploy-production.sh"
+
+    - name: Show deployment instructions
+      run: |
+        echo "## 🚀 Weather App Deployment Instructions"
+        echo ""
+        echo "### Option 1: Direct Server Deployment"
+        echo "1. Copy the generated \`deploy-production.sh\` script to your server"
+        echo "2. Run: \`./deploy-production.sh\`"
+        echo ""
+        echo "### Option 2: Manual Deployment"
+        echo "Run these commands on your server:"
+        echo ""
+        echo "\`\`\`bash"
+        echo "# Pull latest images"
+        echo "docker pull ${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/${{ env.REPO_NAME }}/weather-backend:latest"
+        echo "docker pull ${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/${{ env.REPO_NAME }}/weather-frontend:latest"
+        echo ""
+        echo "# Deploy"
+        echo "docker-compose -f docker-compose.multi.yml up -d"
+        echo "\`\`\`"
+        echo ""
+        echo "### Service URLs (after deployment):"
+        echo "- Frontend: http://your-server-ip:3000"
+        echo "- Backend API: http://your-server-ip:8085"
+        echo "- Database: your-server-ip:3306"
