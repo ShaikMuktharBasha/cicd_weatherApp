@@ -12,16 +12,18 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo 'Checking out source code...'
-                checkout scm
+                git branch: 'main',
+                    url: 'https://github.com/ShaikMukhtarBasha/cicd_weatherApp.git',
+                    credentialsId: 'github-credentials'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 echo 'Building Docker image...'
-                sh """
-                    docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
-                    docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest
+                bat """
+                    docker build -t %DOCKER_IMAGE%:%DOCKER_TAG% .
+                    docker tag %DOCKER_IMAGE%:%DOCKER_TAG% %DOCKER_IMAGE%:latest
                 """
             }
         }
@@ -29,19 +31,20 @@ pipeline {
         stage('Run Tests') {
             steps {
                 echo 'Running application tests...'
-                sh """
-                    # Start the container for testing
-                    docker run -d --name weather-app-test-${BUILD_NUMBER} -p 3001:3000 ${DOCKER_IMAGE}:${DOCKER_TAG}
+                bat """
+                    REM Start the container for testing
+                    docker run -d --name weather-app-test-%BUILD_NUMBER% -p 3001:3000 %DOCKER_IMAGE%:%DOCKER_TAG%
 
-                    # Wait for the application to start
-                    sleep 15
+                    REM Wait for the application to start
+                    timeout /t 15 /nobreak > nul
 
-                    # Run basic health check
-                    curl -f --max-time 10 http://localhost:3001 || exit 1
+                    REM Run basic health check
+                    curl -f --max-time 10 http://localhost:3001
+                    if %errorlevel% neq 0 exit /b 1
 
-                    # Stop and remove test container
-                    docker stop weather-app-test-${BUILD_NUMBER}
-                    docker rm weather-app-test-${BUILD_NUMBER}
+                    REM Stop and remove test container
+                    docker stop weather-app-test-%BUILD_NUMBER%
+                    docker rm weather-app-test-%BUILD_NUMBER%
                 """
             }
         }
@@ -49,21 +52,21 @@ pipeline {
         stage('Push to Registry') {
             steps {
                 echo 'Pushing Docker image to GitHub Container Registry...'
-                sh """
-                    # Login to GitHub Container Registry
-                    echo ${GITHUB_TOKEN} | docker login ghcr.io -u ${GITHUB_USER} --password-stdin
+                bat """
+                    REM Login to GitHub Container Registry
+                    echo %GITHUB_TOKEN% | docker login ghcr.io -u %GITHUB_USER% --password-stdin
 
-                    # Create full image names
-                    FULL_IMAGE_TAG="${DOCKER_REGISTRY}/${DOCKER_REPO}/${DOCKER_IMAGE}:${DOCKER_TAG}"
-                    FULL_IMAGE_LATEST="${DOCKER_REGISTRY}/${DOCKER_REPO}/${DOCKER_IMAGE}:latest"
+                    REM Create full image names
+                    set FULL_IMAGE_TAG=%DOCKER_REGISTRY%/%DOCKER_REPO%/%DOCKER_IMAGE%:%DOCKER_TAG%
+                    set FULL_IMAGE_LATEST=%DOCKER_REGISTRY%/%DOCKER_REPO%/%DOCKER_IMAGE%:latest
 
-                    # Tag images
-                    docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} \${FULL_IMAGE_TAG}
-                    docker tag ${DOCKER_IMAGE}:latest \${FULL_IMAGE_LATEST}
+                    REM Tag images
+                    docker tag %DOCKER_IMAGE%:%DOCKER_TAG% %FULL_IMAGE_TAG%
+                    docker tag %DOCKER_IMAGE%:latest %FULL_IMAGE_LATEST%
 
-                    # Push images
-                    docker push \${FULL_IMAGE_TAG}
-                    docker push \${FULL_IMAGE_LATEST}
+                    REM Push images
+                    docker push %FULL_IMAGE_TAG%
+                    docker push %FULL_IMAGE_LATEST%
                 """
             }
         }
@@ -71,22 +74,22 @@ pipeline {
         stage('Deploy to Production') {
             steps {
                 echo 'Deploying to production environment...'
-                sh """
-                    # Stop existing container
-                    docker stop weather-app-prod || true
-                    docker rm weather-app-prod || true
+                bat """
+                    REM Stop existing container
+                    docker stop weather-app-prod 2>nul
+                    docker rm weather-app-prod 2>nul
 
-                    # Pull latest image
-                    docker pull ${DOCKER_REGISTRY}/${DOCKER_REPO}/${DOCKER_IMAGE}:${DOCKER_TAG}
+                    REM Pull latest image
+                    docker pull %DOCKER_REGISTRY%/%DOCKER_REPO%/%DOCKER_IMAGE%:%DOCKER_TAG%
 
-                    # Run new container
-                    docker run -d \
-                        --name weather-app-prod \
-                        -p 3000:3000 \
-                        --restart unless-stopped \
-                        --label "app=weather-app" \
-                        --label "version=${DOCKER_TAG}" \
-                        ${DOCKER_REGISTRY}/${DOCKER_REPO}/${DOCKER_IMAGE}:${DOCKER_TAG}
+                    REM Run new container
+                    docker run -d ^
+                        --name weather-app-prod ^
+                        -p 3000:3000 ^
+                        --restart unless-stopped ^
+                        --label "app=weather-app" ^
+                        --label "version=%DOCKER_TAG%" ^
+                        %DOCKER_REGISTRY%/%DOCKER_REPO%/%DOCKER_IMAGE%:%DOCKER_TAG%
                 """
             }
         }
@@ -94,14 +97,15 @@ pipeline {
         stage('Post-Deployment Verification') {
             steps {
                 echo 'Verifying production deployment...'
-                sh """
-                    # Wait for deployment
-                    sleep 10
+                bat """
+                    REM Wait for deployment
+                    timeout /t 10 /nobreak > nul
 
-                    # Verify the application is running
-                    curl -f --max-time 10 http://localhost:3000 || exit 1
+                    REM Verify the application is running
+                    curl -f --max-time 10 http://localhost:3000
+                    if %errorlevel% neq 0 exit /b 1
 
-                    echo '✅ Deployment verification successful!'
+                    echo ✅ Deployment verification successful!
                 """
             }
         }
@@ -110,12 +114,12 @@ pipeline {
     post {
         always {
             echo 'Cleaning up Docker resources...'
-            sh """
-                # Remove build images
-                docker rmi ${DOCKER_IMAGE}:${DOCKER_TAG} || true
-                docker rmi ${DOCKER_IMAGE}:latest || true
+            bat """
+                REM Remove build images
+                docker rmi %DOCKER_IMAGE%:%DOCKER_TAG% 2>nul
+                docker rmi %DOCKER_IMAGE%:latest 2>nul
 
-                # Clean up dangling resources
+                REM Clean up dangling resources
                 docker system prune -f
             """
         }
