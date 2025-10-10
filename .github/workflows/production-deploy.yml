@@ -46,7 +46,7 @@ jobs:
 
     - name: Create deployment script
       run: |
-        cat > deploy-production.sh << 'EOF'
+        cat > deploy-production.sh << EOF
         #!/bin/bash
         set -e
 

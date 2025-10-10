@@ -87,7 +87,7 @@ jobs:
     - name: Generate local rebuild script
       if: matrix.service == 'frontend'
       run: |
-        cat > rebuild-frontend-local.sh << 'EOF'
+        cat > rebuild-frontend-local.sh << EOF
         #!/bin/bash
         echo "🔄 Rebuilding Frontend Container Locally..."
 
