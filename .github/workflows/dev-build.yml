@@ -41,8 +41,6 @@ jobs:
     strategy:
       matrix:
         service: [backend, frontend]
-        exclude:
-          - service: ${{ github.event.inputs.service == 'frontend' && 'backend' || (github.event.inputs.service == 'backend' && 'frontend' || 'none') }}
 
     steps:
     - name: Checkout repository
