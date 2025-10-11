@@ -43,8 +43,8 @@ public class AuthController {
 
             System.out.println("Login attempt: username=" + username + ", input_password='" + password + "', stored_password='" + storedPassword + "'");
 
-            // Check if password matches the stored password
-            if (storedPassword != null && storedPassword.equals(password)) {
+            // Check if password matches the stored password (using BCrypt)
+            if (passwordEncoder.matches(password, storedPassword)) {
                 return ResponseEntity.ok(Map.of("token", "demo-jwt-token-" + System.currentTimeMillis(), "message", "Login successful"));
             } else {
                 System.out.println("Password mismatch!");

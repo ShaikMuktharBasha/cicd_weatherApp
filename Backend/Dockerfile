@@ -1,5 +1,5 @@
 # Backend Dockerfile - Multi-stage build for Spring Boot application
-FROM maven:3.9.4-openjdk-17-slim AS builder
+FROM maven:3.8-openjdk-17 AS builder
 
 # Set working directory
 WORKDIR /app
@@ -15,7 +15,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Production stage
-FROM openjdk:17-jre-slim
+FROM openjdk:17-slim
 
 # Install curl for health checks
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
