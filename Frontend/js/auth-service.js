@@ -6,6 +6,7 @@ class AuthService {
         this.token = localStorage.getItem('authToken');
         // Check if we're in demo mode (GitHub Pages - no backend available)
         this.isDemoMode = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+        console.log('🔧 AuthService constructor called, hostname:', window.location.hostname, 'demo mode:', this.isDemoMode);
 
         if (this.isDemoMode) {
             console.log('🔧 Weather App running in Demo Mode (GitHub Pages) - Authentication is mocked');

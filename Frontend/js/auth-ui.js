@@ -1,11 +1,13 @@
 // Simple Authentication UI
 class AuthUI {
     constructor() {
+        console.log('🔧 AuthUI constructor called');
         this.currentUser = null;
         this.init();
     }
 
     init() {
+        console.log('🔧 AuthUI init called');
         this.clearStoredAuth(); // Clear any stored authentication data
         this.setupSimpleLogin();
         this.setupRegistration();
@@ -146,13 +148,20 @@ class AuthUI {
     }
 
     setupGuestMode() {
+        console.log('🔧 Setting up guest mode');
         const guestBtn = document.getElementById('guest-btn');
+        console.log('🔧 Guest button element:', guestBtn);
         if (guestBtn) {
-            guestBtn.addEventListener('click', () => this.handleGuestMode());
+            console.log('🔧 Adding guest button event listener');
+            guestBtn.addEventListener('click', () => {
+                console.log('🔧 Guest button clicked');
+                this.handleGuestMode();
+            });
         }
     }
 
     handleGuestMode() {
+        console.log('🔧 Handling guest mode');
         // Set guest user
         this.currentUser = { name: 'Guest', email: 'guest@weatherapp.com', isGuest: true };
         authService.setCurrentUser(this.currentUser);
@@ -214,5 +223,6 @@ class AuthUI {
 
 // Initialize auth UI when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🔧 DOMContentLoaded fired, initializing AuthUI');
     window.authUI = new AuthUI();
 });
