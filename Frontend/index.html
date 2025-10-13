@@ -294,38 +294,14 @@
     </div>
   </div>
 
-  <!-- JavaScript -->
+    <!-- JavaScript -->
+  <!-- Auth Scripts (load first) -->
+  <script src="js/auth-service.js"></script>
+  <script src="js/auth-ui.js"></script>
+  <!-- Main App Script -->
   <script src="js/main.js"></script>
-</body>
-
-</html>
-      <!-- script -->
-    <script src="js/main.js"></script>
-    <script>
-      document.getElementById('reset-location-btn').onclick = function() {
-        localStorage.removeItem('askedLocation');
-        localStorage.removeItem('lastLat');
-        localStorage.removeItem('lastLon');
-        alert('Location permission reset. Reload the page to be prompted again.');
-      };
-    </script>
-    <script>
-      function updateLiveDateIndex() {
-        const dateElem = document.querySelector('.live-date');
-        if (!dateElem) return;
-        const now = new Date();
-        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        const day = days[now.getDay()];
-        const month = months[now.getMonth()];
-        const date = now.getDate();
-        const year = now.getFullYear();
-        const time = now.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'});
-        dateElem.textContent = `${day}, ${month} ${date}, ${year} | ${time}`;
-      }
-      setInterval(updateLiveDateIndex, 1000);
-      updateLiveDateIndex();
-    </script>
+  <!-- Leaflet JavaScript -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!-- Auth Scripts -->
     <script src="js/auth-service.js"></script>
     <script src="js/auth-ui.js"></script>

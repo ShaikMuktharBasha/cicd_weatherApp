@@ -1,8 +1,8 @@
 // Authentication API Service
 class AuthService {
     constructor() {
-        // Use Vite environment variable for backend URL, fallback to localhost for development
-        this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+        // Use environment detection for backend URL - fallback to localhost for development
+        this.baseURL = 'http://localhost:8080/api'; // Default for development
         this.token = localStorage.getItem('authToken');
         // Check if we're in demo mode (GitHub Pages - no backend available)
         this.isDemoMode = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
