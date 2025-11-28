@@ -72,13 +72,12 @@ spec:
           name: mysql-init-scripts
   volumeClaimTemplates:
   - metadata:
-    name: mysql-data
-    namespace: weather-app
-  spec:
-    accessModes: ["ReadWriteOnce"]
-    resources:
-      requests:
-        storage: 5Gi
+      name: mysql-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 5Gi
 
 ---
 apiVersion: v1
