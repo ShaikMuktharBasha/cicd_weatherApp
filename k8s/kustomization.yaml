@@ -1,0 +1,37 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: weather-app
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - secret.yaml
+  - mysql-init.yaml
+  - mysql.yaml
+  - backend.yaml
+  - frontend.yaml
+  - ingress-local.yaml
+
+images:
+  - name: weather-app-backend
+    newTag: latest
+  - name: weather-app-frontend
+    newTag: latest
+
+configMapGenerator:
+  - name: weather-app-config
+    literals:
+      - MYSQL_DATABASE=weatherapp
+      - MYSQL_USER=weatheruser
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVER_PORT=8080
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_SHOW_SQL=false
+      - NGINX_PORT=3000
+
+secretGenerator:
+  - name: weather-app-secrets
+    literals:
+      - MYSQL_ROOT_PASSWORD=1234
+      - MYSQL_PASSWORD=1234

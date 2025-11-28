@@ -7,10 +7,10 @@ services:
     container_name: weather-app-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_ROOT_PASSWORD: 1234
       MYSQL_DATABASE: weatherapp
       MYSQL_USER: weatheruser
-      MYSQL_PASSWORD: weatherpass
+      MYSQL_PASSWORD: 1234
     ports:
       - "3307:3306"
     volumes:
@@ -36,7 +36,7 @@ services:
       SPRING_SERVER_PORT: 8080
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/weatherapp?createDatabaseIfNotExist=true
       SPRING_DATASOURCE_USERNAME: weatheruser
-      SPRING_DATASOURCE_PASSWORD: weatherpass
+      SPRING_DATASOURCE_PASSWORD: 1234
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
     ports:
       - "8082:8080"
