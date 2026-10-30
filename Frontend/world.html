@@ -1,13 +1,13 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AeroWeather - World Weather & Saved Places</title>
-  <meta name="description" content="Explore real-time weather across major world capitals and manage your personalized saved cities.">
+  <title>AeroWeather - World Weather Hub & Global Capitals</title>
+  <meta name="description" content="Real-time global weather tracking across time zones with interactive radar overview and saved locations.">
   <link rel="icon" type="image/png" href="img/icon.png">
 
-  <!-- Google Fonts -->
+  <!-- Google Fonts: Outfit & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -15,8 +15,69 @@
   <!-- Font Awesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
   <!-- Core App Stylesheet -->
   <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    .world-map-wrapper {
+      width: 100%;
+      height: 280px;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow-sm);
+      margin-top: 6px;
+    }
+    #world-mini-map {
+      width: 100%;
+      height: 100%;
+      background: #090e1a;
+    }
+    .add-city-inline-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(11, 16, 29, 0.7);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-full);
+      padding: 6px 14px;
+      position: relative;
+      flex: 1;
+      max-width: 380px;
+    }
+    .add-city-inline-box:focus-within {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    }
+    .add-city-inline-box input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: white;
+      font-size: 0.88rem;
+      width: 100%;
+    }
+    .world-autocomplete-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      width: 100%;
+      background: rgba(15, 23, 42, 0.98);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--card-border-glow);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      z-index: 2000;
+      display: none;
+      overflow: hidden;
+    }
+    .world-autocomplete-dropdown.show {
+      display: block;
+    }
+  </style>
 </head>
 <body>
   <div class="ambient-glow glow-1"></div>
@@ -31,39 +92,90 @@
         </div>
         <div class="brand-info">
           <span class="brand-name">AeroWeather</span>
-          <span class="brand-tagline"><span class="live-pulse"></span> GLOBAL CAPITALS & SAVED PLACES</span>
+          <span class="brand-tagline"><span class="live-pulse"></span> GLOBAL WEATHER HUB</span>
         </div>
       </a>
 
-      <!-- Header Action Controls -->
+      <!-- Navigation Tabs -->
+      <nav class="nav-tabs-bar" style="margin: 0;">
+        <a href="index.html" class="nav-tab-link">
+          <i class="fa-solid fa-gauge-high"></i> Dashboard
+        </a>
+        <a href="world.html" class="nav-tab-link active">
+          <i class="fa-solid fa-earth-americas"></i> World Places
+        </a>
+        <a href="search.html" class="nav-tab-link">
+          <i class="fa-solid fa-magnifying-glass"></i> Search
+        </a>
+      </nav>
+
+      <!-- Unit Switcher -->
       <div class="header-actions">
-        <a href="index.html" class="action-btn">
-          <i class="fa-solid fa-house"></i> Main Dashboard
-        </a>
-        <a href="search.html" class="action-btn">
-          <i class="fa-solid fa-magnifying-glass"></i> Search City
-        </a>
+        <button id="world-unit-toggle" class="action-btn unit-toggle-btn" title="Toggle °C / °F">
+          °C
+        </button>
       </div>
     </header>
 
-    <!-- World Hero Card -->
-    <div style="background: var(--card-bg); backdrop-filter: var(--glass-blur); border: 1px solid var(--card-border); border-radius: var(--radius-lg); padding: 32px 36px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
-      <div>
-        <h1 style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: white;">Global Weather Hub</h1>
-        <p style="color: var(--text-secondary); font-size: 0.95rem; margin-top: 4px;">
-          Track live meteorological observations across time zones and save your favorite travel destinations.
+    <!-- World Hero Banner & Stats Overview -->
+    <div class="world-hero-banner">
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <h1 style="font-family: var(--font-display); font-size: 2.1rem; font-weight: 800; color: white;">Global Weather Hub</h1>
+        <p style="color: var(--text-secondary); font-size: 0.92rem; max-width: 600px;">
+          Track live meteorological observations across time zones with local daylight indicators and quick-switch access.
         </p>
+
+        <!-- Stats Strip -->
+        <div class="world-stats-strip" style="margin-top: 6px;">
+          <div class="world-stat-pill">
+            <i class="fa-solid fa-city" style="color: var(--accent-cyan);"></i>
+            <span>Tracked: <strong id="stat-total-cities">8 Cities</strong></span>
+          </div>
+          <div class="world-stat-pill">
+            <i class="fa-solid fa-temperature-arrow-up" style="color: var(--accent-amber);"></i>
+            <span>Hottest: <strong id="stat-hottest">--</strong></span>
+          </div>
+          <div class="world-stat-pill">
+            <i class="fa-solid fa-temperature-arrow-down" style="color: var(--accent-cyan);"></i>
+            <span>Coldest: <strong id="stat-coldest">--</strong></span>
+          </div>
+        </div>
       </div>
-      <button id="add-world-city-btn" class="form-submit-btn">
-        <i class="fa-solid fa-plus"></i> Add New Place
-      </button>
+
+      <!-- Quick Add City Input -->
+      <div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-end;">
+        <div class="add-city-inline-box">
+          <i class="fa-solid fa-plus" style="color: var(--accent-cyan);"></i>
+          <input type="text" id="world-add-input" placeholder="Add place (e.g. Rome, Seoul)..." autocomplete="off">
+          <div id="world-dropdown" class="world-autocomplete-dropdown"></div>
+        </div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <button class="city-pill-btn quick-add-chip" data-city="Rome"><span class="chip-code">IT</span> +Rome</button>
+          <button class="city-pill-btn quick-add-chip" data-city="Seoul"><span class="chip-code">KR</span> +Seoul</button>
+          <button class="city-pill-btn quick-add-chip" data-city="Cairo"><span class="chip-code">EG</span> +Cairo</button>
+          <button class="city-pill-btn quick-add-chip" data-city="San Francisco"><span class="chip-code">US</span> +SF</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Embedded World Mini Radar Map -->
+    <div class="map-section-card" style="padding: 18px 22px;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <span style="font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; color: var(--text-light); display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-map" style="color: var(--accent-cyan);"></i> Global Stations Overview
+        </span>
+        <span style="font-size: 0.78rem; color: var(--text-muted);">Click any pin on the map to focus city</span>
+      </div>
+      <div class="world-map-wrapper">
+        <div id="world-mini-map"></div>
+      </div>
     </div>
 
     <!-- Saved Places & World Capitals Grid -->
     <section class="section-wrapper">
       <div class="section-header-row">
         <h2 class="section-title">
-          <i class="fa-solid fa-globe"></i> World Capitals & Saved Cities
+          <i class="fa-solid fa-bookmark"></i> Tracked Cities & Capitals
         </h2>
       </div>
       <div id="world-cities-container" class="saved-cities-grid">
@@ -73,16 +185,21 @@
 
     <!-- App Footer -->
     <footer class="app-footer">
-      <div>AeroWeather Intelligence ΓÇó World Places Directory</div>
-      <div><a href="index.html">ΓåÉ Return to Main Weather Dashboard</a></div>
+      <div>AeroWeather Intelligence • World Places Directory</div>
+      <div><a href="index.html">← Return to Main Weather Dashboard</a></div>
     </footer>
   </div>
 
+  <!-- Global Toast Notification -->
   <div id="toast" class="toast-notification">
-    <i class="fa-solid fa-circle-check" style="color: var(--accent-cyan); font-size: 1.2rem;"></i>
+    <i class="fa-solid fa-circle-check" style="color: var(--accent-cyan); font-size: 1.1rem;"></i>
     <span id="toast-message">Operation successful</span>
   </div>
 
+  <!-- Leaflet JavaScript Library -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- World Page Application Logic -->
   <script src="js/world.js"></script>
 </body>
 </html>

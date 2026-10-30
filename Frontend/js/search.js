@@ -1,4 +1,4 @@
-﻿/**
+/**
  * AEROWEATHER - DEDICATED CITY SEARCH & EXPLORER MODULE
  */
 
@@ -66,8 +66,8 @@ async function searchCity(cityName) {
     document.getElementById("res-city-name").textContent = loc.name;
     document.getElementById("res-country-badge").textContent = loc.country || data.sys?.country || "";
     document.getElementById("res-condition-text").textContent = data.weather?.[0]?.description || "Clear";
-    document.getElementById("res-temp-val").textContent = `${Math.round(data.main?.temp || 0)}┬░`;
-    document.getElementById("res-feels-like").textContent = `Feels like ${Math.round(data.main?.feels_like || 0)}┬░`;
+    document.getElementById("res-temp-val").textContent = `${Math.round(data.main?.temp || 0)}\u00B0`;
+    document.getElementById("res-feels-like").textContent = `Feels like ${Math.round(data.main?.feels_like || 0)}\u00B0`;
     document.getElementById("res-weather-icon").src = getWeatherIconPath(data.weather?.[0]?.main);
 
     document.getElementById("res-wind").textContent = `${Math.round((data.wind?.speed || 0) * 3.6)} km/h`;

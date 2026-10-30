@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -63,8 +63,8 @@
           <i class="fa-solid fa-location-crosshairs"></i>
           <span>My Location</span>
         </button>
-        <button id="unit-toggle-btn" class="action-btn unit-toggle-btn" title="Toggle ┬░C / ┬░F">
-          ┬░C
+        <button id="unit-toggle-btn" class="action-btn unit-toggle-btn" title="Toggle °C / °F">
+          °C
         </button>
         <button id="refresh-weather-btn" class="action-btn" title="Refresh Weather Data">
           <i class="fa-solid fa-rotate-right"></i>
@@ -75,19 +75,19 @@
     <!-- Navigation Pills Bar -->
     <nav class="nav-tabs-bar">
       <a href="#overview" class="nav-tab-link active">
-        <i class="fa-solid fa-gauge-high"></i> Overview
+        <i class="fa-solid fa-gauge-high"></i> Dashboard
       </a>
       <a href="#weather-map-section" class="nav-tab-link">
         <i class="fa-solid fa-map-location-dot"></i> Live Map
       </a>
       <a href="#forecast-section" class="nav-tab-link">
-        <i class="fa-solid fa-calendar-days"></i> 7-Day Forecast
+        <i class="fa-solid fa-calendar-days"></i> Forecast
       </a>
-      <a href="#saved-cities-section" class="nav-tab-link">
-        <i class="fa-solid fa-earth-americas"></i> World Cities
+      <a href="world.html" class="nav-tab-link" title="Open World Capitals & Places">
+        <i class="fa-solid fa-earth-americas"></i> World Places
       </a>
-      <a href="search.html" class="nav-tab-link" title="Open Dedicated Search Page">
-        <i class="fa-solid fa-magnifying-glass"></i> Search Page
+      <a href="search.html" class="nav-tab-link" title="Open Dedicated Search Explorer">
+        <i class="fa-solid fa-magnifying-glass"></i> Search Explorer
       </a>
     </nav>
 
@@ -121,8 +121,8 @@
             <i class="fa-regular fa-clock"></i>
             <span id="live-time-display">Loading...</span>
           </div>
-          <span>ΓÇó</span>
-          <span id="current-coords-display">19.07┬░ N, 72.87┬░ E</span>
+          <span>•</span>
+          <span id="current-coords-display">19.07° N, 72.87° E</span>
         </div>
 
         <div id="current-condition-badge" class="hero-condition-badge">
@@ -131,9 +131,9 @@
         </div>
 
         <div class="hero-temp-range">
-          <span><i class="fa-solid fa-arrow-up"></i> High: <strong id="temp-max-val">--┬░</strong></span>
-          <span>ΓÇó</span>
-          <span><i class="fa-solid fa-arrow-down"></i> Low: <strong id="temp-min-val">--┬░</strong></span>
+          <span><i class="fa-solid fa-arrow-up"></i> High: <strong id="temp-max-val">--°</strong></span>
+          <span>•</span>
+          <span><i class="fa-solid fa-arrow-down"></i> Low: <strong id="temp-min-val">--°</strong></span>
         </div>
       </div>
 
@@ -143,10 +143,10 @@
         </div>
         <div class="hero-temp-container">
           <div class="hero-temp-digits">
-            <span id="current-temp-val">--</span><span>┬░</span>
+            <span id="current-temp-val">--</span><span>°</span>
           </div>
           <div class="hero-feels-like">
-            Feels like <span id="feels-like-val">--┬░</span>
+            Feels like <span id="feels-like-val">--°</span>
           </div>
         </div>
       </div>
@@ -179,7 +179,7 @@
             <div class="metric-tile-icon icon-amber"><i class="fa-solid fa-temperature-half"></i></div>
           </div>
           <div class="metric-main-value">
-            <span id="metric-feels-like">--</span><span class="metric-unit">┬░</span>
+            <span id="metric-feels-like">--</span><span class="metric-unit">°</span>
           </div>
           <div id="metric-feels-desc" class="metric-sub-text">Similar to actual temperature</div>
         </div>
@@ -193,7 +193,10 @@
           <div class="metric-main-value">
             <span id="metric-humidity">--</span><span class="metric-unit">%</span>
           </div>
-          <div id="metric-dewpoint" class="metric-sub-text">Dew point at --┬░</div>
+          <div class="metric-meter-bar">
+            <div id="metric-humidity-fill" class="metric-meter-fill" style="background: var(--accent-cyan); width: 60%;"></div>
+          </div>
+          <div id="metric-dewpoint" class="metric-sub-text">Dew point at --°</div>
         </div>
 
         <!-- Wind & Direction -->
@@ -248,6 +251,9 @@
           <div class="metric-main-value">
             <span id="metric-cloud-cover">--</span><span class="metric-unit">%</span>
           </div>
+          <div class="metric-meter-bar">
+            <div id="metric-cloud-fill" class="metric-meter-fill" style="background: var(--accent-blue); width: 30%;"></div>
+          </div>
           <div id="metric-cloud-desc" class="metric-sub-text">Sky is mostly clear</div>
         </div>
 
@@ -277,6 +283,9 @@
           </div>
           <div class="metric-main-value">
             <span id="metric-uv-index">3</span><span class="metric-unit">/ 11</span>
+          </div>
+          <div class="metric-meter-bar">
+            <div id="metric-uv-fill" class="metric-meter-fill" style="background: var(--accent-amber); width: 30%;"></div>
           </div>
           <div id="metric-uv-desc" class="metric-sub-text">Moderate exposure protection</div>
         </div>
@@ -384,16 +393,16 @@
 
       <!-- Quick City Fly-to Shortcut Pills -->
       <div class="map-city-pills">
-        <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; white-space: nowrap;">Quick Fly:</span>
-        <button class="city-pill-btn" data-lat="19.0760" data-lon="72.8777" data-city="Mumbai">≡ƒç«≡ƒç│ Mumbai</button>
-        <button class="city-pill-btn" data-lat="28.6139" data-lon="77.2090" data-city="New Delhi">≡ƒç«≡ƒç│ Delhi</button>
-        <button class="city-pill-btn" data-lat="51.5074" data-lon="-0.1278" data-city="London">≡ƒç¼≡ƒçº London</button>
-        <button class="city-pill-btn" data-lat="40.7128" data-lon="-74.0060" data-city="New York">≡ƒç║≡ƒç╕ New York</button>
-        <button class="city-pill-btn" data-lat="35.6762" data-lon="139.6503" data-city="Tokyo">≡ƒç»≡ƒç╡ Tokyo</button>
-        <button class="city-pill-btn" data-lat="48.8566" data-lon="2.3522" data-city="Paris">≡ƒç½≡ƒç╖ Paris</button>
-        <button class="city-pill-btn" data-lat="25.2048" data-lon="55.2708" data-city="Dubai">≡ƒçª≡ƒç¬ Dubai</button>
-        <button class="city-pill-btn" data-lat="-33.8688" data-lon="151.2093" data-city="Sydney">≡ƒçª≡ƒç║ Sydney</button>
-        <button class="city-pill-btn" data-lat="1.3521" data-lon="103.8198" data-city="Singapore">≡ƒç╕≡ƒç¼ Singapore</button>
+        <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600; white-space: nowrap;">Quick Fly:</span>
+        <button class="city-pill-btn" data-lat="19.0760" data-lon="72.8777" data-city="Mumbai"><span class="chip-code">IN</span> Mumbai</button>
+        <button class="city-pill-btn" data-lat="28.6139" data-lon="77.2090" data-city="New Delhi"><span class="chip-code">IN</span> Delhi</button>
+        <button class="city-pill-btn" data-lat="51.5074" data-lon="-0.1278" data-city="London"><span class="chip-code">GB</span> London</button>
+        <button class="city-pill-btn" data-lat="40.7128" data-lon="-74.0060" data-city="New York"><span class="chip-code">US</span> New York</button>
+        <button class="city-pill-btn" data-lat="35.6762" data-lon="139.6503" data-city="Tokyo"><span class="chip-code">JP</span> Tokyo</button>
+        <button class="city-pill-btn" data-lat="48.8566" data-lon="2.3522" data-city="Paris"><span class="chip-code">FR</span> Paris</button>
+        <button class="city-pill-btn" data-lat="25.2048" data-lon="55.2708" data-city="Dubai"><span class="chip-code">AE</span> Dubai</button>
+        <button class="city-pill-btn" data-lat="-33.8688" data-lon="151.2093" data-city="Sydney"><span class="chip-code">AU</span> Sydney</button>
+        <button class="city-pill-btn" data-lat="1.3521" data-lon="103.8198" data-city="Singapore"><span class="chip-code">SG</span> Singapore</button>
       </div>
     </section>
 
@@ -401,8 +410,11 @@
     <section id="saved-cities-section" class="saved-cities-section">
       <div class="section-header-row">
         <h2 class="section-title">
-          <i class="fa-solid fa-bookmark"></i> Favorite Places & World Capitals
+          <i class="fa-solid fa-bookmark"></i> Favorite Places & Quick Switch
         </h2>
+        <a href="world.html" style="font-size: 0.85rem; color: var(--accent-cyan); text-decoration: none; font-weight: 600;">
+          View All World Places →
+        </a>
       </div>
       <div id="saved-cities-grid" class="saved-cities-grid">
         <!-- Rendered dynamically via js/main.js -->
@@ -420,7 +432,7 @@
       <div class="feedback-info-col">
         <span class="feedback-tag">User Insights</span>
         <h2 class="feedback-title">Share Your Weather App Experience</h2>
-        <p style="color: var(--text-secondary); font-size: 0.92rem; line-height: 1.6;">
+        <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
           Have ideas for radar layers, new metrics, or localized alerts? Send direct feedback to our developer team.
         </p>
       </div>
@@ -430,10 +442,10 @@
             <input type="text" id="feedback-name" class="form-field" placeholder="Your Name" required>
             <input type="email" id="feedback-email" class="form-field" placeholder="Your Email" required>
           </div>
-          <div style="margin-top: 14px;">
+          <div style="margin-top: 12px;">
             <textarea id="feedback-message" class="form-field" placeholder="Tell us what you love or what we should improve..." rows="3" required></textarea>
           </div>
-          <div style="margin-top: 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+          <div style="margin-top: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
             <button type="submit" class="form-submit-btn">
               <i class="fa-solid fa-paper-plane"></i> Send Feedback
             </button>
@@ -445,9 +457,9 @@
 
     <!-- Application Footer -->
     <footer class="app-footer">
-      <div>AeroWeather Intelligence v2.0 ΓÇó Designed with Glassmorphic Aesthetics</div>
+      <div>AeroWeather Intelligence v2.0 • Ultra-Clean Meteorological Dashboard</div>
       <div>
-        Deployed via GitHub Actions CI/CD to GitHub Pages ΓÇó
+        Deployed via GitHub Actions CI/CD to GitHub Pages •
         <a href="https://github.com/ShaikMuktharBasha/cicd_weatherApp" target="_blank" rel="noopener noreferrer">
           <i class="fa-brands fa-github"></i> View GitHub Repository
         </a>
@@ -458,11 +470,11 @@
 
   <!-- Global Toast Notification Container -->
   <div id="toast" class="toast-notification">
-    <i class="fa-solid fa-circle-check" style="color: var(--accent-cyan); font-size: 1.2rem;"></i>
+    <i class="fa-solid fa-circle-check" style="color: var(--accent-cyan); font-size: 1.1rem;"></i>
     <span id="toast-message">Operation successful</span>
   </div>
 
-  <!-- Leaflet JavaScript Library (Loaded BEFORE main.js) -->
+  <!-- Leaflet JavaScript Library -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <!-- Core Application Logic -->

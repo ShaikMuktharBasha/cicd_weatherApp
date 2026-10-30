@@ -1,4 +1,4 @@
-﻿/**
+/**
  * AEROWEATHER INTELLIGENCE - CORE APPLICATION LOGIC
  * Real-time Weather, Forecast, Canvas Atmosphere, and Interactive Leaflet Radar Map
  */
@@ -39,12 +39,12 @@ const STATE = {
 // ==========================================================================
 
 function formatTemp(celsius) {
-  if (celsius === null || celsius === undefined || isNaN(celsius)) return "--┬░";
+  if (celsius === null || celsius === undefined || isNaN(celsius)) return "--\u00B0";
   if (STATE.unit === "F") {
     const fahrenheit = (celsius * 9) / 5 + 32;
-    return `${Math.round(fahrenheit)}┬░`;
+    return `${Math.round(fahrenheit)}\u00B0`;
   }
-  return `${Math.round(celsius)}┬░`;
+  return `${Math.round(celsius)}\u00B0`;
 }
 
 function getWeatherIconPath(mainCondition) {
@@ -285,8 +285,8 @@ function renderHeroCard(data) {
   document.getElementById("current-city-name").textContent = STATE.currentCity;
   document.getElementById("current-country-badge").textContent = STATE.currentCountry;
 
-  const latText = `${Math.abs(data.coord.lat).toFixed(2)}┬░ ${data.coord.lat >= 0 ? "N" : "S"}`;
-  const lonText = `${Math.abs(data.coord.lon).toFixed(2)}┬░ ${data.coord.lon >= 0 ? "E" : "W"}`;
+  const latText = `${Math.abs(data.coord.lat).toFixed(2)}\u00B0 ${data.coord.lat >= 0 ? "N" : "S"}`;
+  const lonText = `${Math.abs(data.coord.lon).toFixed(2)}\u00B0 ${data.coord.lon >= 0 ? "E" : "W"}`;
   document.getElementById("current-coords-display").textContent = `${latText}, ${lonText}`;
 
   const conditionDesc = data.weather?.[0]?.description || "Clear Sky";
@@ -367,7 +367,7 @@ function renderMetrics(data) {
 
   const windLabels = ["North", "NNE", "NE", "ENE", "East", "ESE", "SE", "SSE", "South", "SSW", "SW", "WSW", "West", "WNW", "NW", "NNW"];
   const dirIndex = Math.round(windDeg / 22.5) % 16;
-  document.getElementById("metric-wind-dir").textContent = `${windLabels[dirIndex]} (${windDeg}┬░)`;
+  document.getElementById("metric-wind-dir").textContent = `${windLabels[dirIndex]} (${windDeg}\u00B0)`;
 
   // Pressure
   document.getElementById("metric-pressure").textContent = pressure;
@@ -380,11 +380,16 @@ function renderMetrics(data) {
     visibilityKm >= 10 ? "Crystal clear optical visibility" :
     visibilityKm >= 5 ? "Moderate visibility" : "Hazy / reduced visibility";
 
-  // Cloud Cover
+  // Cloud Cover & Fill
   document.getElementById("metric-cloud-cover").textContent = cloudPercent;
   document.getElementById("metric-cloud-desc").textContent =
     cloudPercent < 20 ? "Clear and open skies" :
     cloudPercent < 60 ? "Partly cloudy conditions" : "Overcast sky cover";
+  const cloudFill = document.getElementById("metric-cloud-fill");
+  if (cloudFill) cloudFill.style.width = `${cloudPercent}%`;
+
+  const humFill = document.getElementById("metric-humidity-fill");
+  if (humFill) humFill.style.width = `${humidity}%`;
 
   // Sun Schedule
   if (data.sys?.sunrise && data.sys?.sunset) {
@@ -411,6 +416,11 @@ function renderMetrics(data) {
   document.getElementById("metric-uv-desc").textContent =
     uvEst >= 8 ? "Very high - protect skin" :
     uvEst >= 6 ? "High - sunglasses & sunscreen" : "Moderate exposure risk";
+  const uvFill = document.getElementById("metric-uv-fill");
+  if (uvFill) {
+    uvFill.style.width = `${Math.min(100, Math.round((uvEst / 11) * 100))}%`;
+    uvFill.style.background = uvEst >= 8 ? "var(--accent-rose)" : uvEst >= 6 ? "var(--accent-amber)" : "var(--accent-emerald)";
+  }
 }
 
 // Render 6-Day Daily Forecast
@@ -430,6 +440,17 @@ function renderDailyForecast(forecast) {
 
   const dayKeys = Object.keys(daysMap).slice(0, 6);
 
+  // Compute weekly absolute min and max for the Apple Weather range bar
+  let weekMin = Infinity;
+  let weekMax = -Infinity;
+  dayKeys.forEach(k => {
+    daysMap[k].forEach(item => {
+      if (item.main.temp_min < weekMin) weekMin = item.main.temp_min;
+      if (item.main.temp_max > weekMax) weekMax = item.main.temp_max;
+    });
+  });
+  const tempRange = Math.max(1, weekMax - weekMin);
+
   dayKeys.forEach((key, index) => {
     const items = daysMap[key];
     const temps = items.map(i => i.main.temp);
@@ -443,6 +464,10 @@ function renderDailyForecast(forecast) {
     const dayName = index === 0 ? "Today" : dateObj.toLocaleDateString("en-US", { weekday: "short" });
     const formattedDate = dateObj.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
+    // Apple Weather-style proportional range bar
+    const leftPct = Math.max(0, Math.min(100, ((minTemp - weekMin) / tempRange) * 100));
+    const rightPct = Math.max(0, Math.min(100, ((weekMax - maxTemp) / tempRange) * 100));
+
     const row = document.createElement("div");
     row.className = "daily-row";
     row.innerHTML = `
@@ -455,7 +480,7 @@ function renderDailyForecast(forecast) {
       <div class="daily-temp-bar-container">
         <span class="daily-temp-min">${formatTemp(minTemp)}</span>
         <div class="daily-temp-bar">
-          <div class="daily-temp-bar-fill"></div>
+          <div class="daily-temp-bar-fill" style="left: ${leftPct.toFixed(1)}%; right: ${rightPct.toFixed(1)}%;"></div>
         </div>
         <span class="daily-temp-max">${formatTemp(maxTemp)}</span>
       </div>
@@ -522,7 +547,7 @@ function checkSevereAlerts(data) {
 
   if (temp >= 38) {
     alertTitle = "Extreme Heat Advisory";
-    alertDesc = `High temperature of ${Math.round(temp)}┬░C detected. Stay hydrated and avoid prolonged direct sun.`;
+    alertDesc = `High temperature of ${Math.round(temp)}\u00B0C detected. Stay hydrated and avoid prolonged direct sun.`;
   } else if (wind >= 20) {
     alertTitle = "High Wind Warning";
     alertDesc = `Strong wind gusts up to ${Math.round(wind * 3.6)} km/h detected. Secure loose outdoor fixtures.`;
@@ -684,10 +709,10 @@ class WeatherRadarMap {
         const customIcon = L.divIcon({
           className: "custom-leaflet-marker",
           html: `
-            <div class="weather-map-marker" title="${hub.name}: ${temp}┬░C">
+            <div class="weather-map-marker" title="${hub.name}: ${temp}\u00B0C">
               <img class="map-marker-icon" src="${icon}" alt="${data.weather?.[0]?.main}">
               <span class="map-marker-name">${hub.name}</span>
-              <span class="map-marker-temp">${temp}┬░</span>
+              <span class="map-marker-temp">${temp}\u00B0</span>
             </div>
           `,
           iconSize: [80, 28],
@@ -700,11 +725,11 @@ class WeatherRadarMap {
           <div class="map-popup-card">
             <div class="map-popup-title">${hub.name}, ${data.sys?.country || ""}</div>
             <div class="map-popup-temp-row">
-              <span class="map-popup-temp">${temp}┬░C</span>
+              <span class="map-popup-temp">${temp}\u00B0C</span>
               <img src="${icon}" style="width:32px; height:32px;">
             </div>
             <div class="map-popup-desc">${data.weather?.[0]?.description || ""}</div>
-            <div style="font-size:0.75rem; color:var(--text-muted);">Humidity: ${data.main?.humidity}% ΓÇó Wind: ${Math.round(data.wind?.speed * 3.6)} km/h</div>
+            <div style="font-size:0.75rem; color:var(--text-muted);">Humidity: ${data.main?.humidity}% \u2022 Wind: ${Math.round(data.wind?.speed * 3.6)} km/h</div>
             <button class="map-popup-btn" onclick="fetchWeatherByCoords(${hub.lat}, ${hub.lon}, '${hub.name}')">
               View Full Weather
             </button>
@@ -734,7 +759,7 @@ class WeatherRadarMap {
           <div class="map-popup-card">
             <div class="map-popup-title">${name}</div>
             <div class="map-popup-temp-row">
-              <span class="map-popup-temp">${temp}┬░C</span>
+              <span class="map-popup-temp">${temp}\u00B0C</span>
               <img src="${icon}" style="width:32px; height:32px;">
             </div>
             <div class="map-popup-desc">${data.weather?.[0]?.description || ""}</div>
@@ -764,7 +789,7 @@ class WeatherRadarMap {
         <div class="weather-map-marker" style="border-color: #f59e0b; box-shadow: 0 0 16px rgba(245, 158, 11, 0.6);">
           <img class="map-marker-icon" src="${icon}">
           <span class="map-marker-name">${cityName}</span>
-          <span class="map-marker-temp" style="color: #f59e0b;">${Math.round(temp || 0)}┬░</span>
+          <span class="map-marker-temp" style="color: #f59e0b;">${Math.round(temp || 0)}\u00B0</span>
         </div>
       `,
       iconSize: [85, 30],
@@ -1058,17 +1083,17 @@ function initGeolocation() {
   });
 }
 
-// Unit Switcher (┬░C <-> ┬░F)
+// Unit Switcher (°C <-> °F)
 function initUnitToggle() {
   const toggleBtn = document.getElementById("unit-toggle-btn");
   if (!toggleBtn) return;
 
-  toggleBtn.textContent = `┬░${STATE.unit}`;
+  toggleBtn.textContent = `\u00B0${STATE.unit}`;
 
   toggleBtn.addEventListener("click", () => {
     STATE.unit = STATE.unit === "C" ? "F" : "C";
     localStorage.setItem("aero_unit", STATE.unit);
-    toggleBtn.textContent = `┬░${STATE.unit}`;
+    toggleBtn.textContent = `\u00B0${STATE.unit}`;
 
     // Re-render components with new unit
     if (STATE.currentWeatherData) {
@@ -1080,7 +1105,7 @@ function initUnitToggle() {
       renderDailyForecast(STATE.forecastData);
     }
     renderSavedCities();
-    showToast(`Switched units to ┬░${STATE.unit}`);
+    showToast(`Switched units to \u00B0${STATE.unit}`);
   });
 }
 
