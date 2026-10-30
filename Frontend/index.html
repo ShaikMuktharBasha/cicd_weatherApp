@@ -1,311 +1,471 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- links -->
-  <link rel="icon" type="png" href="img/icon.png" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/auth.css" />
+  <title>AeroWeather - Live Weather & Interactive Global Radar Map</title>
+  <meta name="description" content="Modern, live weather intelligence app with real-time global radar map, hourly & 7-day forecasts, air metrics, and saved cities.">
+  <link rel="icon" type="image/png" href="img/icon.png">
+
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
   <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <!-- Title -->
-  <title>Weather App - Local Weather (Dev Mode)</title>
-  <script>
-    window.BACKEND_URL = "http://localhost:8085";
-  </script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+  <!-- Core App Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
-  <!-- Login Page Overlay -->
-  <div id="login-page" class="login-page">
-    <div class="simple-login-container">
-      <div class="simple-login-header">
-        <img src="img/icon.png" alt="Weather App" class="simple-login-logo">
-        <h1>Welcome to WeatherApp</h1>
-      </div>
+  <!-- Dynamic Atmosphere Canvas (Sunrays, Clouds, Rain, Stars) -->
+  <canvas id="weather-canvas"></canvas>
 
-      <!-- Auth Tabs -->
-      <div class="auth-tabs">
-        <button id="login-tab" class="auth-tab active" data-form="login">Sign In</button>
-        <button id="register-tab" class="auth-tab" data-form="register">Sign Up</button>
-      </div>
+  <!-- Ambient Lighting Effects -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
 
-      <!-- Login Form -->
-      <div id="login-form" class="auth-form active">
-        <form id="simple-login-form">
-          <div class="input-group">
-            <label for="login-username">Username</label>
-            <input type="text" id="login-username" placeholder="Enter username" required>
-          </div>
+  <!-- Main Application Container -->
+  <div class="app-container">
 
-          <div class="input-group">
-            <label for="login-password">Password</label>
-            <input type="password" id="login-password" placeholder="Enter password" required>
-          </div>
-
-          <button type="submit" class="simple-login-btn">Sign In</button>
-        </form>
-      </div>
-
-      <!-- Register Form -->
-      <div id="register-form" class="auth-form">
-        <form id="register-form-element">
-          <div class="input-group">
-            <label for="register-username">Username</label>
-            <input type="text" id="register-username" placeholder="Choose username" required>
-          </div>
-
-          <div class="input-group">
-            <label for="register-password">Password</label>
-            <input type="password" id="register-password" placeholder="Create password" required>
-          </div>
-
-          <div class="input-group">
-            <label for="register-confirm-password">Confirm Password</label>
-            <input type="password" id="register-confirm-password" placeholder="Confirm password" required>
-          </div>
-
-          <button type="submit" class="simple-login-btn">Create Account</button>
-        </form>
-      </div>
-
-      <!-- Guest Option -->
-      <div class="guest-option">
-        <button id="guest-btn" class="guest-btn">Continue as Guest</button>
-      </div>
-
-      <div id="login-message" class="login-message"></div>
-    </div>
-  </div>
-
-  <div id="screen" style="display: none;">
-    <!-- Background Effects -->
-    <div class="background-effects">
-      <!-- Stars for night time -->
-      <div class="stars">
-        <div class="star star-1"></div>
-        <div class="star star-2"></div>
-        <div class="star star-3"></div>
-        <div class="star star-4"></div>
-        <div class="star star-5"></div>
-        <div class="star star-6"></div>
-        <div class="star star-7"></div>
-        <div class="star star-8"></div>
-        <div class="star star-9"></div>
-        <div class="star star-10"></div>
-      </div>
-      
-      <!-- Rain drops for rainy weather -->
-      <div class="rain-drops">
-        <div class="rain-drop drop-1"></div>
-        <div class="rain-drop drop-2"></div>
-        <div class="rain-drop drop-3"></div>
-        <div class="rain-drop drop-4"></div>
-        <div class="rain-drop drop-5"></div>
-        <div class="rain-drop drop-6"></div>
-        <div class="rain-drop drop-7"></div>
-        <div class="rain-drop drop-8"></div>
-        <div class="rain-drop drop-9"></div>
-        <div class="rain-drop drop-10"></div>
-      </div>
-    </div>
-
-    <!-- live date and reset button row -->
-    <div style="display:flex; justify-content:center; align-items:center; gap:16px; margin-top:20px; margin-bottom:10px;">
-      <div class="live-date" style="font-weight:500; font-size:1.2rem;"></div>
-      <button id="reset-location-btn" style="padding:6px 16px; border-radius:8px; background:#332464; color:#fff; border:none; cursor:pointer; font-size:0.95rem;">Reset Location</button>
-    </div>
-
-    <!-- city name -->
-    <div class="city-name">
-      <i class="fa-solid fa-map-pin"></i>
-      <h1 id="city-name">Mumbai</h1>
-    </div>
-
-    <!-- weather icon -->
-    <div class="weather-icon-css">
-      <img class="weather-icon" src="img/sun.png" />
-    </div>
-
-    <!-- weather details -->
-    <div class="weather-description">
-      <div class="show-metric" id="metric">0°</div>
-      <div class="weather-details">
-        <div class="weather-main" id="weather-main">Sunny</div>
-        <div class="weather-metrics">
-          <div class="metric-item">
-            <i class="fas fa-tint"></i>
-            <span>H: <span id="humidity">60</span>%</span>
-          </div>
-          <div class="metric-item">
-            <i class="fas fa-thermometer-half"></i>
-            <span>F: <span id="feels-like">60</span>°</span>
-          </div>
-          <div class="metric-item">
-            <i class="fas fa-wind"></i>
-            <span>W: <span id="wind-speed">5</span> m/s</span>
-          </div>
+    <!-- Top App Header -->
+    <header class="app-header">
+      <a href="index.html" class="brand-wrapper">
+        <div class="brand-logo-icon">
+          <i class="fa-solid fa-cloud-bolt"></i>
         </div>
-      </div>
-    </div>
-
-    <!-- Weather Alerts -->
-    <div id="weather-alerts" class="weather-alerts" style="display: none;">
-      <div class="alert-content">
-        <i class="fas fa-exclamation-triangle alert-icon"></i>
-        <div class="alert-text">
-          <h4 id="alert-title">Weather Alert</h4>
-          <p id="alert-description">Severe weather conditions detected</p>
+        <div class="brand-info">
+          <span class="brand-name">AeroWeather</span>
+          <span class="brand-tagline"><span class="live-pulse"></span> LIVE RADAR & FORECAST</span>
         </div>
-        <button class="alert-close" onclick="closeAlert()">
-          <i class="fas fa-times"></i>
+      </a>
+
+      <!-- Search Input with Live Autocomplete -->
+      <div class="header-search-wrapper">
+        <div class="search-input-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="city-search-input" class="header-search-input" placeholder="Search city, state or country..." autocomplete="off">
+          <button id="search-submit-btn" class="search-btn-action" title="Search">
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+        <!-- Autocomplete Suggestions Dropdown -->
+        <div id="search-dropdown" class="search-dropdown"></div>
+      </div>
+
+      <!-- Header Action Controls -->
+      <div class="header-actions">
+        <button id="geolocation-btn" class="action-btn" title="Detect Current Location">
+          <i class="fa-solid fa-location-crosshairs"></i>
+          <span>My Location</span>
+        </button>
+        <button id="unit-toggle-btn" class="action-btn unit-toggle-btn" title="Toggle ┬░C / ┬░F">
+          ┬░C
+        </button>
+        <button id="refresh-weather-btn" class="action-btn" title="Refresh Weather Data">
+          <i class="fa-solid fa-rotate-right"></i>
         </button>
       </div>
-    </div>
+    </header>
 
-    <!-- Weather Tips & Recommendations -->
-    <div class="weather-tips-section">
-      <div class="tips-container">
-        <div class="tips-header">
-          <i class="fas fa-lightbulb"></i>
-          <h4>Weather Tips</h4>
-        </div>
-        <div id="weather-tips" class="weather-tips">
-          <div class="tip-item">
-            <i class="fas fa-sun"></i>
-            <span>Enjoy the beautiful weather today!</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="recommendations-container">
-        <div class="recommendations-header">
-          <i class="fas fa-star"></i>
-          <h4>Recommendations</h4>
-        </div>
-        <div id="weather-recommendations" class="weather-recommendations">
-          <div class="recommendation-item">
-            <i class="fas fa-walking"></i>
-            <span>Perfect day for outdoor activities</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Weather Map -->
-    <div class="weather-map-section">
-      <div class="map-container">
-        <div class="map-header">
-          <h4><i class="fas fa-map"></i> Weather Map</h4>
-          <div class="map-search-container">
-            <div class="map-search-bar">
-              <i class="fas fa-search"></i>
-              <input type="text" id="location-search" placeholder="Search for a location..." autocomplete="off">
-            </div>
-            <div class="map-controls">
-              <button class="map-control-btn active" data-view="temperature">
-                <i class="fas fa-thermometer-half"></i> Temp
-              </button>
-              <button class="map-control-btn" data-view="precipitation">
-                <i class="fas fa-cloud-rain"></i> Rain
-              </button>
-              <button class="map-control-btn" data-view="wind">
-                <i class="fas fa-wind"></i> Wind
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="weather-map" style="height: 400px; width: 100%;"></div>
-      </div>
-    </div>
-
-    <!-- Today-forecast -->
-    <div class="forcasts-box">
-      <div class="today-forecast">
-        <h4>TODAY</h4>
-        <div class="weather-icon-today">
-          <img class="weather-icons" src="img/sun.png" />
-        </div>
-        <div class="temp-today">
-          <span id="temp-min-today">50°</span><span>/ </span
-          ><span id="temp-max-today">55°</span>
-        </div>
-        <div class="weather-main-today" id="weather-main">Sunny</div>
-      </div>
-
-      <!-- 5day Forecast -->
-      <div class="future-forecast">
-        <h5>6-DAYS FORECAST</h5>
-        <div id="future-forecast-box"></div>
-      </div>
-    </div>
-
-    <!-- Feedback Section -->
-    <div class="feedback-section">
-      <div class="feedback-container">
-        <div class="feedback-header">
-          <i class="fas fa-comments"></i>
-          <h4>Feedback</h4>
-        </div>
-        <form id="feedback-form" class="feedback-form">
-          <input type="hidden" name="_recipient" value="muktharbasha123ab@gmail.com">
-          <div class="form-group">
-            <input type="text" id="feedback-name" placeholder="Your Name" required>
-          </div>
-          <div class="form-group">
-            <input type="email" id="feedback-email" placeholder="muktharbasha123ab@gmail.com" required>
-          </div>
-          <div class="form-group">
-            <textarea id="feedback-message" placeholder="Your Feedback..." rows="4" required></textarea>
-          </div>
-          <button type="submit" class="feedback-submit-btn">
-            <i class="fas fa-paper-plane"></i> Send Feedback
-          </button>
-        </form>
-        <div id="feedback-status" class="feedback-status"></div>
-      </div>
-    </div>
-
-    <!-- nav section -->
-    <nav>
-      <ul>
-        <li>
-          <a class="active" href="/cicd_weatherApp/"
-            ><i class="fa-solid fa-location-arrow"></i
-          ></a>
-        </li>
-        <li>
-          <a href="/cicd_weatherApp/search.html"
-            ><i class="fa-solid fa-magnifying-glass"></i
-          ></a>
-        </li>
-        <li>
-          <a href="/cicd_weatherApp/world.html"><i class="fa-solid fa-earth-americas"></i></a>
-        </li>
-      </ul>
+    <!-- Navigation Pills Bar -->
+    <nav class="nav-tabs-bar">
+      <a href="#overview" class="nav-tab-link active">
+        <i class="fa-solid fa-gauge-high"></i> Overview
+      </a>
+      <a href="#weather-map-section" class="nav-tab-link">
+        <i class="fa-solid fa-map-location-dot"></i> Live Map
+      </a>
+      <a href="#forecast-section" class="nav-tab-link">
+        <i class="fa-solid fa-calendar-days"></i> 7-Day Forecast
+      </a>
+      <a href="#saved-cities-section" class="nav-tab-link">
+        <i class="fa-solid fa-earth-americas"></i> World Cities
+      </a>
+      <a href="search.html" class="nav-tab-link" title="Open Dedicated Search Page">
+        <i class="fa-solid fa-magnifying-glass"></i> Search Page
+      </a>
     </nav>
 
-    <!-- Copyright Section -->
-    <div class="copyright-section">
-      <p>&copy; 2025 Weather App by Shaik Mukhtar Basha. All rights reserved.</p>
+    <!-- Severe Weather Alerts Banner (conditionally displayed) -->
+    <div id="weather-alert-banner" class="weather-alert-banner">
+      <div class="alert-banner-left">
+        <div class="alert-icon-wrap">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div>
+          <div id="alert-title-text" class="alert-title-text">Weather Advisory</div>
+          <div id="alert-desc-text" class="alert-desc-text">Atmospheric changes detected in your region.</div>
+        </div>
+      </div>
+      <button id="alert-close-btn" class="alert-close-btn" title="Dismiss Alert">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
     </div>
+
+    <!-- Main Hero Weather Card -->
+    <main id="overview" class="hero-weather-card">
+      <div class="hero-left-content">
+        <div class="hero-location-row">
+          <i class="fa-solid fa-location-dot location-pin-icon"></i>
+          <h1 id="current-city-name" class="hero-city-name">Mumbai</h1>
+          <span id="current-country-badge" class="country-pill">IN</span>
+        </div>
+
+        <div class="hero-meta-row">
+          <div class="live-clock-badge">
+            <i class="fa-regular fa-clock"></i>
+            <span id="live-time-display">Loading...</span>
+          </div>
+          <span>ΓÇó</span>
+          <span id="current-coords-display">19.07┬░ N, 72.87┬░ E</span>
+        </div>
+
+        <div id="current-condition-badge" class="hero-condition-badge">
+          <i class="fa-solid fa-cloud-sun"></i>
+          <span id="condition-text">Clear Sky</span>
+        </div>
+
+        <div class="hero-temp-range">
+          <span><i class="fa-solid fa-arrow-up"></i> High: <strong id="temp-max-val">--┬░</strong></span>
+          <span>ΓÇó</span>
+          <span><i class="fa-solid fa-arrow-down"></i> Low: <strong id="temp-min-val">--┬░</strong></span>
+        </div>
+      </div>
+
+      <div class="hero-right-content">
+        <div class="hero-icon-container">
+          <img id="current-weather-icon" class="hero-weather-icon" src="img/sun.png" alt="Current Weather Condition">
+        </div>
+        <div class="hero-temp-container">
+          <div class="hero-temp-digits">
+            <span id="current-temp-val">--</span><span>┬░</span>
+          </div>
+          <div class="hero-feels-like">
+            Feels like <span id="feels-like-val">--┬░</span>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 24-Hour Hourly Forecast -->
+    <section class="section-wrapper">
+      <div class="section-header-row">
+        <h2 class="section-title">
+          <i class="fa-solid fa-clock"></i> Hourly Forecast (24 Hours)
+        </h2>
+      </div>
+      <div id="hourly-forecast-container" class="hourly-forecast-scroll">
+        <!-- Rendered dynamically via js/main.js -->
+      </div>
+    </section>
+
+    <!-- Essential Weather Metrics Grid (8 Tiles) -->
+    <section class="section-wrapper">
+      <div class="section-header-row">
+        <h2 class="section-title">
+          <i class="fa-solid fa-chart-simple"></i> Weather Conditions & Atmosphere
+        </h2>
+      </div>
+      <div class="metrics-grid">
+        <!-- Feels Like -->
+        <div class="metric-tile">
+          <div class="metric-tile-header">
+            <span>Feels Like</span>
+            <div class="metric-tile-icon icon-amber"><i class="fa-solid fa-temperature-half"></i></div>
+          </div>
+          <div class="metric-main-value">
+            <span id="metric-feels-like">--</span><span class="metric-unit">┬░</span>
+          </div>
+          <div id="metric-feels-desc" class="metric-sub-text">Similar to actual temperature</div>
+        </div>
+
+        <!-- Humidity -->
+        <div class="metric-tile">
+          <div class="metric-tile-header">
+            <span>Humidity</span>
+            <div class="metric-tile-icon icon-cyan"><i class="fa-solid fa-droplet"></i></div>
+          </div>
+          <div class="metric-main-value">
+            <span id="metric-humidity">--</span><span class="metric-unit">%</span>
+          </div>
+          <div id="metric-dewpoint" class="metric-sub-text">Dew point at --┬░</div>
+        </div>
+
+        <!-- Wind & Direction -->
+        <div class="metric-tile">
+          <div class="metric-tile-header">
+            <span>Wind & Direction</span>
+            <div class="metric-tile-icon icon-blue"><i class="fa-solid fa-wind"></i></div>
+          </div>
+          <div class="wind-compass-visual">
+            <div class="compass-dial">
+              <i id="compass-arrow" class="fa-solid fa-location-arrow compass-arrow"></i>
+            </div>
+            <div>
+              <div class="metric-main-value">
+                <span id="metric-wind-speed">--</span><span id="metric-wind-unit" class="metric-unit">km/h</span>
+              </div>
+              <div id="metric-wind-dir" class="metric-sub-text">Calm Breeze</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barometric Pressure -->
+        <div class="metric-tile">
+          <div class="metric-tile-header">
+            <span>Air Pressure</span>
+            <div class="metric-tile-icon icon-purple"><i class="fa-solid fa-gauge"></i></div>
+          </div>
+          <div class="metric-main-value">
+            <span id="metric-pressure">--</span><span class="metric-unit">hPa</span>
+          </div>
+          <div id="metric-pressure-desc" class="metric-sub-text">Normal sea level pressure</div>
+        </div>
+
+        <!-- Visibility -->
+        <div class="metric-tile">
+          <div class="metric-tile-header">
+            <span>Visibility</span>
+            <div class="metric-tile-icon icon-emerald"><i class="fa-solid fa-eye"></i></div>
+          </div>
+          <div class="metric-main-value">
+            <span id="metric-visibility">--</span><span class="metric-unit">km</span>
+          </div>
+          <div id="metric-visibility-desc" class="metric-sub-text">Clear optical visibility</div>
+        </div>
+
+        <!-- Cloud Cover -->
+        <div class="metric-tile">
+          <div class="metric-tile-header">
+            <span>Cloud Coverage</span>
+            <div class="metric-tile-icon icon-cyan"><i class="fa-solid fa-cloud"></i></div>
+          </div>
+          <div class="metric-main-value">
+            <span id="metric-cloud-cover">--</span><span class="metric-unit">%</span>
+          </div>
+          <div id="metric-cloud-desc" class="metric-sub-text">Sky is mostly clear</div>
+        </div>
+
+        <!-- Sunrise & Sunset Tracker -->
+        <div class="metric-tile">
+          <div class="metric-tile-header">
+            <span>Sun Schedule</span>
+            <div class="metric-tile-icon icon-amber"><i class="fa-solid fa-sun"></i></div>
+          </div>
+          <div class="sun-arc-container">
+            <div class="sun-arc-bar">
+              <div id="sun-arc-progress" class="sun-arc-progress"></div>
+            </div>
+            <div class="sun-times-row">
+              <span><i class="fa-regular fa-sun"></i> Rise: <strong id="metric-sunrise">--:--</strong></span>
+              <span><i class="fa-solid fa-moon"></i> Set: <strong id="metric-sunset">--:--</strong></span>
+            </div>
+          </div>
+          <div id="daylight-remaining" class="metric-sub-text">Daylight tracking active</div>
+        </div>
+
+        <!-- UV Index Estimate -->
+        <div class="metric-tile">
+          <div class="metric-tile-header">
+            <span>UV Index</span>
+            <div class="metric-tile-icon icon-rose"><i class="fa-solid fa-shield-halved"></i></div>
+          </div>
+          <div class="metric-main-value">
+            <span id="metric-uv-index">3</span><span class="metric-unit">/ 11</span>
+          </div>
+          <div id="metric-uv-desc" class="metric-sub-text">Moderate exposure protection</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2-Column: 6-Day Forecast & Smart Lifestyle Insights -->
+    <div id="forecast-section" class="forecast-insights-grid">
+      <!-- 6-Day Detailed Forecast -->
+      <section class="forecast-card-container">
+        <h2 class="section-title">
+          <i class="fa-solid fa-calendar-week"></i> 6-Day Extended Forecast
+        </h2>
+        <div id="daily-forecast-list" class="daily-forecast-list">
+          <!-- Rendered dynamically via js/main.js -->
+        </div>
+      </section>
+
+      <!-- Smart Lifestyle & Health Insights -->
+      <section id="insights-section" class="insights-card-container">
+        <h2 class="section-title">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Weather Tips & Lifestyle
+        </h2>
+        <div class="insights-list">
+          <div class="insight-item">
+            <div class="insight-icon-box icon-cyan">
+              <i class="fa-solid fa-shirt"></i>
+            </div>
+            <div class="insight-content">
+              <div class="insight-title">Clothing & Comfort</div>
+              <div id="insight-clothing" class="insight-text">Light breathable cotton is perfect for today's weather.</div>
+            </div>
+          </div>
+
+          <div class="insight-item">
+            <div class="insight-icon-box icon-emerald">
+              <i class="fa-solid fa-person-running"></i>
+            </div>
+            <div class="insight-content">
+              <div class="insight-title">Outdoor Activities</div>
+              <div id="insight-outdoor" class="insight-text">Great conditions for jogging, cycling, or a walk outside.</div>
+            </div>
+          </div>
+
+          <div class="insight-item">
+            <div class="insight-icon-box icon-amber">
+              <i class="fa-solid fa-umbrella"></i>
+            </div>
+            <div class="insight-content">
+              <div class="insight-title">Precipitation Outlook</div>
+              <div id="insight-umbrella" class="insight-text">No umbrella needed today. Clear skies anticipated.</div>
+            </div>
+          </div>
+
+          <div class="insight-item">
+            <div class="insight-icon-box icon-rose">
+              <i class="fa-solid fa-sun"></i>
+            </div>
+            <div class="insight-content">
+              <div class="insight-title">Sun Protection</div>
+              <div id="insight-sun" class="insight-text">Wear sunglasses and apply SPF 30+ if outdoors for long periods.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Interactive Weather Radar & Global Map -->
+    <section id="weather-map-section" class="map-section-card">
+      <div class="map-card-header">
+        <h2 class="section-title">
+          <i class="fa-solid fa-earth-americas"></i> Interactive Global Weather Map & Radar
+        </h2>
+        <!-- Layer Selection Controls -->
+        <div class="map-layer-controls">
+          <button class="layer-btn active" data-layer="temp">
+            <i class="fa-solid fa-temperature-half"></i> Temperature
+          </button>
+          <button class="layer-btn" data-layer="precipitation">
+            <i class="fa-solid fa-cloud-showers-heavy"></i> Rain Radar
+          </button>
+          <button class="layer-btn" data-layer="clouds">
+            <i class="fa-solid fa-cloud"></i> Clouds
+          </button>
+          <button class="layer-btn" data-layer="wind">
+            <i class="fa-solid fa-wind"></i> Wind Flow
+          </button>
+        </div>
+      </div>
+
+      <!-- Map Viewport Container -->
+      <div class="map-viewport-wrapper">
+        <!-- Floating search inside map -->
+        <div class="map-floating-bar">
+          <i class="fa-solid fa-map-pin" style="color: var(--accent-cyan);"></i>
+          <input type="text" id="map-quick-search" placeholder="Jump to map location...">
+        </div>
+        <!-- Fullscreen Map Toggle -->
+        <button id="map-fullscreen-btn" class="map-fullscreen-btn" title="Toggle Fullscreen Map">
+          <i class="fa-solid fa-expand"></i>
+        </button>
+        <!-- Leaflet Map Mount Point -->
+        <div id="weather-map"></div>
+      </div>
+
+      <!-- Quick City Fly-to Shortcut Pills -->
+      <div class="map-city-pills">
+        <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; white-space: nowrap;">Quick Fly:</span>
+        <button class="city-pill-btn" data-lat="19.0760" data-lon="72.8777" data-city="Mumbai">≡ƒç«≡ƒç│ Mumbai</button>
+        <button class="city-pill-btn" data-lat="28.6139" data-lon="77.2090" data-city="New Delhi">≡ƒç«≡ƒç│ Delhi</button>
+        <button class="city-pill-btn" data-lat="51.5074" data-lon="-0.1278" data-city="London">≡ƒç¼≡ƒçº London</button>
+        <button class="city-pill-btn" data-lat="40.7128" data-lon="-74.0060" data-city="New York">≡ƒç║≡ƒç╕ New York</button>
+        <button class="city-pill-btn" data-lat="35.6762" data-lon="139.6503" data-city="Tokyo">≡ƒç»≡ƒç╡ Tokyo</button>
+        <button class="city-pill-btn" data-lat="48.8566" data-lon="2.3522" data-city="Paris">≡ƒç½≡ƒç╖ Paris</button>
+        <button class="city-pill-btn" data-lat="25.2048" data-lon="55.2708" data-city="Dubai">≡ƒçª≡ƒç¬ Dubai</button>
+        <button class="city-pill-btn" data-lat="-33.8688" data-lon="151.2093" data-city="Sydney">≡ƒçª≡ƒç║ Sydney</button>
+        <button class="city-pill-btn" data-lat="1.3521" data-lon="103.8198" data-city="Singapore">≡ƒç╕≡ƒç¼ Singapore</button>
+      </div>
+    </section>
+
+    <!-- Saved Cities / World Weather Grid -->
+    <section id="saved-cities-section" class="saved-cities-section">
+      <div class="section-header-row">
+        <h2 class="section-title">
+          <i class="fa-solid fa-bookmark"></i> Favorite Places & World Capitals
+        </h2>
+      </div>
+      <div id="saved-cities-grid" class="saved-cities-grid">
+        <!-- Rendered dynamically via js/main.js -->
+        <div id="add-city-trigger" class="add-city-tile" title="Add Place to Favorites">
+          <div class="add-city-icon">
+            <i class="fa-solid fa-plus"></i>
+          </div>
+          <span>Add Custom Place</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Feedback & User Form Section -->
+    <section class="feedback-card-section">
+      <div class="feedback-info-col">
+        <span class="feedback-tag">User Insights</span>
+        <h2 class="feedback-title">Share Your Weather App Experience</h2>
+        <p style="color: var(--text-secondary); font-size: 0.92rem; line-height: 1.6;">
+          Have ideas for radar layers, new metrics, or localized alerts? Send direct feedback to our developer team.
+        </p>
+      </div>
+      <div class="feedback-form-col">
+        <form id="feedback-form">
+          <div class="form-row">
+            <input type="text" id="feedback-name" class="form-field" placeholder="Your Name" required>
+            <input type="email" id="feedback-email" class="form-field" placeholder="Your Email" required>
+          </div>
+          <div style="margin-top: 14px;">
+            <textarea id="feedback-message" class="form-field" placeholder="Tell us what you love or what we should improve..." rows="3" required></textarea>
+          </div>
+          <div style="margin-top: 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+            <button type="submit" class="form-submit-btn">
+              <i class="fa-solid fa-paper-plane"></i> Send Feedback
+            </button>
+            <div id="feedback-status" class="feedback-status-msg"></div>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Application Footer -->
+    <footer class="app-footer">
+      <div>AeroWeather Intelligence v2.0 ΓÇó Designed with Glassmorphic Aesthetics</div>
+      <div>
+        Deployed via GitHub Actions CI/CD to GitHub Pages ΓÇó
+        <a href="https://github.com/ShaikMuktharBasha/cicd_weatherApp" target="_blank" rel="noopener noreferrer">
+          <i class="fa-brands fa-github"></i> View GitHub Repository
+        </a>
+      </div>
+    </footer>
+
   </div>
 
-    <!-- JavaScript -->
-  <!-- Auth Scripts (load first) -->
-  <script src="js/auth-service.js"></script>
-  <script src="js/auth-ui.js"></script>
-  <!-- Main App Script -->
-  <script src="js/main.js"></script>
-  <!-- Leaflet JavaScript -->
+  <!-- Global Toast Notification Container -->
+  <div id="toast" class="toast-notification">
+    <i class="fa-solid fa-circle-check" style="color: var(--accent-cyan); font-size: 1.2rem;"></i>
+    <span id="toast-message">Operation successful</span>
+  </div>
+
+  <!-- Leaflet JavaScript Library (Loaded BEFORE main.js) -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Auth Scripts -->
-    <script src="js/auth-service.js"></script>
-    <script src="js/auth-ui.js"></script>
-    <!-- Leaflet JavaScript -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  </body>
-  </html>
+
+  <!-- Core Application Logic -->
+  <script src="js/main.js"></script>
+</body>
+</html>

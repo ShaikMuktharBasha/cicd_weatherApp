@@ -1,87 +1,88 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- links -->
-  <link rel="icon" type="png" href="/cicd_weatherApp/img/icon.png" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link rel="stylesheet" href="/cicd_weatherApp/css/world.css" />
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <!-- Title -->
-  <title>Document</title>
+  <title>AeroWeather - World Weather & Saved Places</title>
+  <meta name="description" content="Explore real-time weather across major world capitals and manage your personalized saved cities.">
+  <link rel="icon" type="image/png" href="img/icon.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Core App Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
-  <div id="screen">
-    <!-- main section -->
-    <div class="section">
-      <div class="date">April 7, 2024</div>
-      <div class="button"><i class="fa-solid fa-circle-plus btn-icon"></i></div>
-    </div>
-    <!-- add section -->
-    <div class="section-box">
-      <div class="add-section">
-        <div class="add-section-title">
-          <h2>Add a new place</h2>
-        </div>
-        <!-- search -->
-        <div class="search">
-          <div class="search-icon"><i class="fa-solid fa-location-dot"></i></div>
-          <input class="searchinput" type="text" placeholder="search...">
-        </div>
-        <!-- error message -->
-        <div class="messages">
-          <div class="error-message">City not found</div>
-          <div class="normal-message">Search your city to add</div>
-          <div class="added-message">Successfully added ✔</div>
-        </div>
-      </div>
-    </div>
-    <!-- All City -->
-     <div class="city-box"></div>
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
 
-    <!-- Weather Map -->
-    <div class="weather-map-section">
-      <div class="map-container">
-        <div class="map-header">
-          <h4><i class="fas fa-map"></i> Weather Map - India</h4>
-          <div class="map-search-container">
-            <div class="map-search-bar">
-              <input type="text" placeholder="Search location..." class="map-search-input">
-              <button class="map-search-btn"><i class="fas fa-search"></i></button>
-            </div>
-            <div class="map-controls">
-              <button class="map-control-btn active" data-view="temperature">
-                <i class="fas fa-thermometer-half"></i> Temperature
-              </button>
-              <button class="map-control-btn" data-view="precipitation">
-                <i class="fas fa-cloud-rain"></i> Precipitation
-              </button>
-              <button class="map-control-btn" data-view="wind">
-                <i class="fas fa-wind"></i> Wind
-              </button>
-            </div>
-          </div>
+  <div class="app-container">
+    <!-- Top App Header -->
+    <header class="app-header">
+      <a href="index.html" class="brand-wrapper">
+        <div class="brand-logo-icon">
+          <i class="fa-solid fa-cloud-bolt"></i>
         </div>
-        <div class="weather-map" style="height: 500px; width: 100%; border-radius: 12px;"></div>
+        <div class="brand-info">
+          <span class="brand-name">AeroWeather</span>
+          <span class="brand-tagline"><span class="live-pulse"></span> GLOBAL CAPITALS & SAVED PLACES</span>
+        </div>
+      </a>
+
+      <!-- Header Action Controls -->
+      <div class="header-actions">
+        <a href="index.html" class="action-btn">
+          <i class="fa-solid fa-house"></i> Main Dashboard
+        </a>
+        <a href="search.html" class="action-btn">
+          <i class="fa-solid fa-magnifying-glass"></i> Search City
+        </a>
       </div>
+    </header>
+
+    <!-- World Hero Card -->
+    <div style="background: var(--card-bg); backdrop-filter: var(--glass-blur); border: 1px solid var(--card-border); border-radius: var(--radius-lg); padding: 32px 36px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+      <div>
+        <h1 style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: white;">Global Weather Hub</h1>
+        <p style="color: var(--text-secondary); font-size: 0.95rem; margin-top: 4px;">
+          Track live meteorological observations across time zones and save your favorite travel destinations.
+        </p>
+      </div>
+      <button id="add-world-city-btn" class="form-submit-btn">
+        <i class="fa-solid fa-plus"></i> Add New Place
+      </button>
     </div>
 
-    <!-- nav section -->
-    <nav>
-      <ul>
-        <li><a href="/cicd_weatherApp/"><i class="fa-solid fa-location-arrow"></i></a></li>
-        <li><a href="/cicd_weatherApp/search.html"><i class="fa-solid fa-magnifying-glass"></i></a></li>
-        <li><a class="active" href="/cicd_weatherApp/world.html"><i class="fa-solid fa-earth-americas"></i></a></li>
-      </ul>
-    </nav>
+    <!-- Saved Places & World Capitals Grid -->
+    <section class="section-wrapper">
+      <div class="section-header-row">
+        <h2 class="section-title">
+          <i class="fa-solid fa-globe"></i> World Capitals & Saved Cities
+        </h2>
+      </div>
+      <div id="world-cities-container" class="saved-cities-grid">
+        <!-- Rendered dynamically via js/world.js -->
+      </div>
+    </section>
+
+    <!-- App Footer -->
+    <footer class="app-footer">
+      <div>AeroWeather Intelligence ΓÇó World Places Directory</div>
+      <div><a href="index.html">ΓåÉ Return to Main Weather Dashboard</a></div>
+    </footer>
   </div>
+
+  <div id="toast" class="toast-notification">
+    <i class="fa-solid fa-circle-check" style="color: var(--accent-cyan); font-size: 1.2rem;"></i>
+    <span id="toast-message">Operation successful</span>
+  </div>
+
+  <script src="js/world.js"></script>
 </body>
-<!-- javascript -->
-<script src="/cicd_weatherApp/js/world.js"></script>
-<!-- Leaflet JavaScript -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </html>

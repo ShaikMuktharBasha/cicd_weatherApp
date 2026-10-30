@@ -1,7 +1,9 @@
-name: Deploy to GitHub Pages
+name: Deploy AeroWeather App to GitHub Pages
 
 on:
   push:
+    branches: [ main ]
+  pull_request:
     branches: [ main ]
   workflow_dispatch:
 
@@ -16,37 +18,52 @@ concurrency:
 
 jobs:
   build:
+    name: Build & Package Weather App
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: Frontend/package-lock.json
+          node-version: '20'
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: |
           cd Frontend
-          npm ci
+          npm install
 
-      - name: Build
+      - name: Validate & Test Code
+        run: |
+          cd Frontend
+          npm test
+
+      - name: Build Static Distribution
         run: |
           cd Frontend
           npm run build
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
+      - name: Verify Distribution Assets
+        run: |
+          test -f Frontend/dist/index.html || exit 1
+          test -f Frontend/dist/search.html || exit 1
+          test -f Frontend/dist/world.html || exit 1
+          test -f Frontend/dist/css/style.css || exit 1
+          test -f Frontend/dist/js/main.js || exit 1
+          echo "All distribution assets successfully verified."
 
-      - name: Upload artifact
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Artifact to Pages
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./Frontend/dist
 
   deploy:
+    name: Deploy to GitHub Pages
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

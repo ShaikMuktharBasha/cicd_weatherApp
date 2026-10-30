@@ -1,0 +1,31 @@
+# Environment Secrets
+.env
+*.env.local
+Frontend/.env
+Backend/.env
+
+# Dependencies
+node_modules/
+Frontend/node_modules/
+Backend/target/
+
+# Build Artefacts
+dist/
+Frontend/dist/
+*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# System & IDE files
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+Thumbs.db
