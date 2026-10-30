@@ -595,6 +595,54 @@ body {
 .hero-temp-range i.fa-arrow-up { color: var(--accent-amber); }
 .hero-temp-range i.fa-arrow-down { color: var(--accent-cyan); }
 
+/* Geolocation Accuracy Badge */
+.accuracy-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #34d399;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.accuracy-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: pulse-dot 1.8s infinite;
+}
+
+/* Atmospheric Intelligence Summary */
+.hero-weather-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  color: #cbd5e1;
+  line-height: 1.45;
+  margin-top: 4px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.hero-weather-summary i {
+  color: var(--accent-cyan);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
 /* Right Hero Visuals */
 .hero-right-content {
   display: flex;
@@ -1801,27 +1849,59 @@ textarea.form-field {
 
 @media (max-width: 600px) {
   .app-container {
-    padding: 12px 10px 50px 10px;
+    padding: 12px 12px 60px 12px;
+    gap: 16px;
+  }
+  .app-header {
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+  }
+  .brand-logo-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+  .brand-name {
+    font-size: 1.15rem;
+  }
+  .hero-weather-card {
+    padding: 22px 18px;
+    border-radius: var(--radius-lg);
     gap: 18px;
   }
   .hero-city-name {
-    font-size: 2rem;
+    font-size: 1.9rem;
   }
   .hero-temp-digits {
     font-size: 4rem;
   }
   .hero-weather-icon {
-    width: 95px;
-    height: 95px;
+    width: 85px;
+    height: 85px;
   }
   .metrics-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px;
+  }
+  .metric-tile {
+    padding: 14px 12px;
+    gap: 8px;
+  }
+  .metric-main-value {
+    font-size: 1.45rem;
+  }
+  .metric-tile-header {
+    font-size: 0.76rem;
+  }
+  .hourly-card {
+    min-width: 85px;
+    padding: 12px 8px;
   }
   .saved-cities-grid {
     grid-template-columns: 1fr;
   }
   .daily-row {
-    grid-template-columns: 75px 32px 1fr 90px;
+    grid-template-columns: 65px 30px 1fr 110px;
     gap: 6px;
     padding: 8px 10px;
   }
@@ -1829,6 +1909,18 @@ textarea.form-field {
     display: none;
   }
   .map-viewport-wrapper {
-    height: 360px;
+    height: 340px;
+  }
+  .nav-tabs-bar {
+    width: 100%;
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .nav-tab-link {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    white-space: nowrap;
   }
 }

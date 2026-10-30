@@ -48,16 +48,27 @@ function getWeatherIconPath(mainCondition) {
 }
 
 function getSavedCities() {
-  return JSON.parse(localStorage.getItem("aero_saved_cities")) || [
+  const custom = JSON.parse(localStorage.getItem("aero_saved_cities"));
+  if (custom && custom.length) return custom;
+
+  const currentCity = localStorage.getItem("aero_last_city");
+  const currentLat = parseFloat(localStorage.getItem("aero_last_lat"));
+  const currentLon = parseFloat(localStorage.getItem("aero_last_lon"));
+
+  const defaultList = [
     { name: "New York", country: "US", lat: 40.7128, lon: -74.0060 },
     { name: "London", country: "GB", lat: 51.5074, lon: -0.1278 },
     { name: "Tokyo", country: "JP", lat: 35.6762, lon: 139.6503 },
     { name: "Paris", country: "FR", lat: 48.8566, lon: 2.3522 },
     { name: "Dubai", country: "AE", lat: 25.2048, lon: 55.2708 },
     { name: "Singapore", country: "SG", lat: 1.3521, lon: 103.8198 },
-    { name: "Sydney", country: "AU", lat: -33.8688, lon: 151.2093 },
-    { name: "Mumbai", country: "IN", lat: 19.0760, lon: 72.8777 }
+    { name: "Sydney", country: "AU", lat: -33.8688, lon: 151.2093 }
   ];
+
+  if (currentCity && !isNaN(currentLat) && !isNaN(currentLon)) {
+    return [{ name: currentCity, country: "Local", lat: currentLat, lon: currentLon, isLocal: true }, ...defaultList];
+  }
+  return [{ name: "Mumbai", country: "IN", lat: 19.0760, lon: 72.8777 }, ...defaultList];
 }
 
 function calculateLocalTime(timezoneOffsetSeconds) {
@@ -153,7 +164,10 @@ async function renderWorldGrid() {
       card.innerHTML = `
         <div class="city-card-header">
           <div>
-            <div class="city-card-title">${city.name}</div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="city-card-title">${city.name}</span>
+              ${city.isLocal ? `<span class="accuracy-badge" style="padding: 1px 7px; font-size: 0.65rem;"><span class="accuracy-dot"></span> Current</span>` : ""}
+            </div>
             <div class="city-card-country-row">
               <span class="city-card-country">${city.country || data.sys?.country || ""}</span>
               <span class="city-local-time"><i class="${dayNightIcon}"></i> ${localTimeStr}</span>

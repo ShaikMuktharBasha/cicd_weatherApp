@@ -108,8 +108,55 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Location Detection in Search
+  async function searchCurrentLocation() {
+    showToast("Pinpointing your location...");
+    let fallbackCity = null;
+
+    try {
+      const res = await fetch("https://ipwho.is/");
+      const d = await res.json();
+      if (d && d.success && d.city) fallbackCity = d.city;
+    } catch (e) {}
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          try {
+            const wUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&units=metric&appid=${API_KEY}`;
+            const wRes = await fetch(wUrl);
+            const data = await wRes.json();
+            if (data && data.name) {
+              if (searchInput) searchInput.value = data.name;
+              searchCity(data.name);
+            }
+          } catch (err) {
+            if (fallbackCity) searchCity(fallbackCity);
+          }
+        },
+        () => {
+          if (fallbackCity) {
+            if (searchInput) searchInput.value = fallbackCity;
+            searchCity(fallbackCity);
+          } else {
+            showToast("Location access denied. Please type a city name.", true);
+          }
+        },
+        { enableHighAccuracy: true, timeout: 6000 }
+      );
+    } else if (fallbackCity) {
+      if (searchInput) searchInput.value = fallbackCity;
+      searchCity(fallbackCity);
+    }
+  }
+
+  const geoSearchBtn = document.getElementById("search-geo-btn");
+  const chipDetectLoc = document.getElementById("chip-detect-loc");
+  if (geoSearchBtn) geoSearchBtn.addEventListener("click", searchCurrentLocation);
+  if (chipDetectLoc) chipDetectLoc.addEventListener("click", searchCurrentLocation);
+
   // Quick Chips
-  document.querySelectorAll(".search-chip").forEach(chip => {
+  document.querySelectorAll(".search-chip[data-city]").forEach(chip => {
     chip.addEventListener("click", () => {
       const city = chip.getAttribute("data-city");
       if (searchInput) searchInput.value = city;

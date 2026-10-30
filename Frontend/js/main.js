@@ -235,6 +235,7 @@ async function fetchWeatherByCoords(lat, lon, preferredName = null) {
     renderDailyForecast(foreData);
     renderInsights(curData, foreData);
     checkSevereAlerts(curData);
+    fetchAirPollution(lat, lon);
 
     // Update map marker and center
     if (STATE.weatherMapInstance) {
@@ -303,6 +304,11 @@ function renderHeroCard(data) {
 
   const iconPath = getWeatherIconPath(data.weather?.[0]?.main);
   document.getElementById("current-weather-icon").src = iconPath;
+
+  const summaryEl = document.getElementById("summary-text");
+  if (summaryEl) {
+    summaryEl.textContent = generateWeatherSummary(data, STATE.forecastData);
+  }
 }
 
 // Render Hourly Forecast (Next 24 Hours / 8 intervals)
@@ -528,6 +534,202 @@ function renderInsights(current, forecast) {
     sunEl.textContent = "Strong UV exposure. Sunglasses and SPF 30+ sunscreen recommended.";
   } else {
     sunEl.textContent = "Moderate UV levels. Regular skin protection is sufficient.";
+  }
+}
+
+// ==========================================================================
+// AIR QUALITY POLLUTION API (AQI + PM2.5 / PM10)
+// ==========================================================================
+async function fetchAirPollution(lat, lon) {
+  try {
+    const url = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${CONFIG.apiKey}`;
+    const res = await fetch(url);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data.list || !data.list.length) return;
+
+    const aqi = data.list[0].main.aqi;
+    const pm25 = data.list[0].components.pm2_5 || 0;
+    renderAQI(aqi, pm25);
+  } catch (e) {
+    console.warn("Could not fetch air quality data:", e);
+  }
+}
+
+function renderAQI(aqi, pm25) {
+  const valEl = document.getElementById("metric-aqi-val");
+  const labelEl = document.getElementById("metric-aqi-label");
+  const fillEl = document.getElementById("metric-aqi-fill");
+  const descEl = document.getElementById("metric-aqi-desc");
+  if (!valEl) return;
+
+  const aqiMap = {
+    1: { label: "Good", color: "#10b981", pct: 20, desc: "Air quality is ideal for all outdoor activities." },
+    2: { label: "Fair", color: "#84cc16", pct: 40, desc: "Air quality is acceptable for most people." },
+    3: { label: "Moderate", color: "#f59e0b", pct: 60, desc: "Sensitive groups may experience mild effects." },
+    4: { label: "Poor", color: "#f97316", pct: 80, desc: "Unhealthy. Limit prolonged outdoor exertion." },
+    5: { label: "Very Poor", color: "#ef4444", pct: 100, desc: "Hazardous health alert: wear mask outdoors." }
+  };
+
+  const level = aqiMap[aqi] || aqiMap[3];
+  valEl.textContent = aqi;
+  if (labelEl) {
+    labelEl.textContent = level.label;
+    labelEl.style.color = level.color;
+  }
+
+  if (fillEl) {
+    fillEl.style.width = `${level.pct}%`;
+    fillEl.style.background = level.color;
+    fillEl.style.boxShadow = `0 0 10px ${level.color}`;
+  }
+  if (descEl) {
+    descEl.textContent = `PM2.5: ${pm25.toFixed(1)} µg/m³ • ${level.desc}`;
+  }
+}
+
+// Generate Apple Weather style dynamic weather summary
+function generateWeatherSummary(weatherData, forecastData) {
+  const temp = Math.round(weatherData.main?.temp || 20);
+  const condition = (weatherData.weather?.[0]?.description || "").toLowerCase();
+  const windKmh = Math.round((weatherData.wind?.speed || 0) * 3.6);
+  const humidity = weatherData.main?.humidity || 50;
+
+  let rainSoon = false;
+  if (forecastData && forecastData.list) {
+    for (let i = 0; i < Math.min(3, forecastData.list.length); i++) {
+      if ((forecastData.list[i].pop || 0) > 0.3) {
+        rainSoon = true;
+        break;
+      }
+    }
+  }
+
+  if (rainSoon) {
+    return "Precipitation expected in the next few hours. Carry an umbrella and anticipate damp roadways.";
+  }
+  if (temp >= 35) {
+    return `High temperature of ${temp}°C detected. Stay well hydrated and avoid direct sunlight during peak hours.`;
+  }
+  if (temp <= 5) {
+    return `Crisp atmospheric cold (${temp}°C). Insulated coats and layered winter apparel recommended.`;
+  }
+  if (windKmh >= 30) {
+    return `Brisk winds gusting up to ${windKmh} km/h. Exercise caution with open fixtures.`;
+  }
+  if (condition.includes("cloud") || condition.includes("overcast")) {
+    return `Partly cloudy skies with comfortable air. Pleasant conditions for walking, cycling, and travel.`;
+  }
+  if (condition.includes("clear") || condition.includes("sun")) {
+    return `Clear sunny conditions prevailing. Relative humidity is ${humidity}%, ideal weather for all outdoor routines.`;
+  }
+  return `Current conditions: ${weatherData.weather?.[0]?.description}. Wind at ${windKmh} km/h with ${humidity}% humidity.`;
+}
+
+// Update location badge in UI
+function updateLocationBadge(label, isGps = false) {
+  const textEl = document.getElementById("location-accuracy-text");
+  const badgeEl = document.getElementById("location-accuracy-badge");
+  if (!textEl) return;
+
+  textEl.textContent = label;
+  if (badgeEl) {
+    badgeEl.style.borderColor = isGps ? "rgba(16, 185, 129, 0.6)" : "rgba(56, 189, 248, 0.4)";
+    badgeEl.style.background = isGps ? "rgba(16, 185, 129, 0.18)" : "rgba(56, 189, 248, 0.12)";
+    badgeEl.style.color = isGps ? "#34d399" : "#38bdf8";
+  }
+}
+
+// Intelligent automatic & manual accurate location detection
+async function detectAccurateLocation(isManualClick = false) {
+  const geoBtn = document.getElementById("geolocation-btn");
+  const spinIcon = geoBtn?.querySelector("i");
+  if (spinIcon) spinIcon.classList.add("fa-spin");
+
+  if (isManualClick) {
+    showToast("Pinpointing exact GPS location...");
+  }
+
+  // 1. Fast Network IP Geolocation
+  const ipPromise = (async () => {
+    try {
+      const res = await fetch("https://ipwho.is/");
+      const d = await res.json();
+      if (d && d.success && d.latitude && d.longitude) {
+        return { lat: d.latitude, lon: d.longitude, city: d.city, country: d.country_code };
+      }
+    } catch (e) {
+      try {
+        const res2 = await fetch("https://ipapi.co/json/");
+        const d2 = await res2.json();
+        if (d2 && d2.latitude && d2.longitude) {
+          return { lat: d2.latitude, lon: d2.longitude, city: d2.city, country: d2.country_code };
+        }
+      } catch (e2) {}
+    }
+    return null;
+  })();
+
+  // 2. High-Precision Browser GPS
+  const gpsPromise = new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      resolve(null);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        resolve({
+          lat: pos.coords.latitude,
+          lon: pos.coords.longitude,
+          accuracy: pos.coords.accuracy
+        });
+      },
+      (err) => {
+        console.warn("GPS lookup denied or unavailable:", err.message);
+        resolve(null);
+      },
+      { enableHighAccuracy: true, timeout: isManualClick ? 10000 : 5000, maximumAge: 30000 }
+    );
+  });
+
+  // If on initial load, load fast IP immediately so user has zero wait time
+  if (!isManualClick) {
+    const ipResult = await ipPromise;
+    if (ipResult && !STATE.currentWeatherData) {
+      await fetchWeatherByCoords(ipResult.lat, ipResult.lon, ipResult.city);
+      updateLocationBadge(`Network Location (${ipResult.city})`, false);
+    }
+  }
+
+  // Wait for GPS resolution
+  const gpsResult = await gpsPromise;
+  if (spinIcon) spinIcon.classList.remove("fa-spin");
+
+  if (gpsResult) {
+    await fetchWeatherByCoords(gpsResult.lat, gpsResult.lon);
+    const accMeters = Math.round(gpsResult.accuracy || 15);
+    updateLocationBadge(`GPS Accurate (~${accMeters}m)`, true);
+    if (isManualClick) {
+      showToast("Pinpointed exact GPS location!");
+    }
+  } else if (isManualClick) {
+    const ip = await ipPromise;
+    if (ip) {
+      await fetchWeatherByCoords(ip.lat, ip.lon, ip.city);
+      updateLocationBadge(`Network Location (${ip.city})`, false);
+      showToast(`Detected location: ${ip.city}`);
+    } else {
+      showToast("Could not access location. Please search manually.", true);
+    }
+  } else if (!STATE.currentWeatherData) {
+    const savedLat = localStorage.getItem("aero_last_lat");
+    const savedLon = localStorage.getItem("aero_last_lon");
+    const savedCity = localStorage.getItem("aero_last_city");
+    if (savedLat && savedLon) {
+      fetchWeatherByCoords(parseFloat(savedLat), parseFloat(savedLon), savedCity);
+    } else {
+      fetchWeatherByCoords(CONFIG.defaultLat, CONFIG.defaultLon, CONFIG.defaultCity);
+    }
   }
 }
 
@@ -1060,26 +1262,7 @@ function initGeolocation() {
   if (!geoBtn) return;
 
   geoBtn.addEventListener("click", () => {
-    if (!navigator.geolocation) {
-      showToast("Geolocation is not supported by your browser.", true);
-      return;
-    }
-
-    geoBtn.querySelector("i").classList.add("fa-spin");
-    showToast("Detecting your location...");
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        geoBtn.querySelector("i").classList.remove("fa-spin");
-        fetchWeatherByCoords(pos.coords.latitude, pos.coords.longitude);
-      },
-      (err) => {
-        geoBtn.querySelector("i").classList.remove("fa-spin");
-        console.warn("Geolocation denied or error:", err);
-        showToast("Location permission denied. Showing default city.", true);
-      },
-      { timeout: 10000 }
-    );
+    detectAccurateLocation(true);
   });
 }
 
@@ -1192,14 +1375,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // 4. Load Saved Favorite Places
   renderSavedCities();
 
-  // 5. Initial Weather Load (check for saved last coordinates or default)
-  const savedLat = localStorage.getItem("aero_last_lat");
-  const savedLon = localStorage.getItem("aero_last_lon");
-  const savedCity = localStorage.getItem("aero_last_city");
-
-  if (savedLat && savedLon) {
-    fetchWeatherByCoords(parseFloat(savedLat), parseFloat(savedLon), savedCity);
-  } else {
-    fetchWeatherByCoords(CONFIG.defaultLat, CONFIG.defaultLon, CONFIG.defaultCity);
-  }
+  // 5. Intelligent Automatic Location Detection (GPS + Real-time IP fallback)
+  detectAccurateLocation(false);
 });

@@ -112,8 +112,11 @@
       <div class="hero-left-content">
         <div class="hero-location-row">
           <i class="fa-solid fa-location-dot location-pin-icon"></i>
-          <h1 id="current-city-name" class="hero-city-name">Mumbai</h1>
-          <span id="current-country-badge" class="country-pill">IN</span>
+          <h1 id="current-city-name" class="hero-city-name">Detecting Location...</h1>
+          <span id="current-country-badge" class="country-pill">--</span>
+          <span id="location-accuracy-badge" class="accuracy-badge">
+            <span class="accuracy-dot"></span> <span id="location-accuracy-text">Auto Detecting...</span>
+          </span>
         </div>
 
         <div class="hero-meta-row">
@@ -122,18 +125,26 @@
             <span id="live-time-display">Loading...</span>
           </div>
           <span>•</span>
-          <span id="current-coords-display">19.07° N, 72.87° E</span>
+          <span id="current-coords-display">Detecting pinpoint coordinates...</span>
         </div>
 
-        <div id="current-condition-badge" class="hero-condition-badge">
-          <i class="fa-solid fa-cloud-sun"></i>
-          <span id="condition-text">Clear Sky</span>
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <div id="current-condition-badge" class="hero-condition-badge">
+            <i class="fa-solid fa-cloud-sun"></i>
+            <span id="condition-text">Clear Sky</span>
+          </div>
+
+          <div class="hero-temp-range">
+            <span><i class="fa-solid fa-arrow-up"></i> High: <strong id="temp-max-val">--°</strong></span>
+            <span>•</span>
+            <span><i class="fa-solid fa-arrow-down"></i> Low: <strong id="temp-min-val">--°</strong></span>
+          </div>
         </div>
 
-        <div class="hero-temp-range">
-          <span><i class="fa-solid fa-arrow-up"></i> High: <strong id="temp-max-val">--°</strong></span>
-          <span>•</span>
-          <span><i class="fa-solid fa-arrow-down"></i> Low: <strong id="temp-min-val">--°</strong></span>
+        <!-- Apple Weather style smart atmospheric summary -->
+        <div id="hero-weather-summary" class="hero-weather-summary">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <span id="summary-text">Analyzing atmospheric conditions...</span>
         </div>
       </div>
 
@@ -288,6 +299,22 @@
             <div id="metric-uv-fill" class="metric-meter-fill" style="background: var(--accent-amber); width: 30%;"></div>
           </div>
           <div id="metric-uv-desc" class="metric-sub-text">Moderate exposure protection</div>
+        </div>
+
+        <!-- Live Air Quality Index (AQI) -->
+        <div class="metric-tile">
+          <div class="metric-tile-header">
+            <span>Air Quality</span>
+            <div class="metric-tile-icon icon-emerald"><i class="fa-solid fa-leaf"></i></div>
+          </div>
+          <div class="metric-main-value">
+            <span id="metric-aqi-val">--</span><span class="metric-unit">AQI</span>
+            <span id="metric-aqi-label" style="font-size: 0.95rem; font-weight: 700; margin-left: 8px; color: var(--accent-emerald);">Good</span>
+          </div>
+          <div class="metric-meter-bar">
+            <div id="metric-aqi-fill" class="metric-meter-fill" style="background: var(--accent-emerald); width: 25%;"></div>
+          </div>
+          <div id="metric-aqi-desc" class="metric-sub-text">PM2.5: -- µg/m³ • Live atmospheric reading</div>
         </div>
       </div>
     </section>

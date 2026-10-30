@@ -151,10 +151,16 @@
         <button id="search-action-btn" class="form-submit-btn" style="padding: 8px 18px;">
           Search
         </button>
+        <button id="search-geo-btn" class="action-btn" title="Use Current GPS/Network Location" style="padding: 8px 14px; border-color: rgba(56, 189, 248, 0.4); color: var(--accent-cyan);">
+          <i class="fa-solid fa-location-crosshairs"></i>
+        </button>
       </div>
 
       <!-- Quick Search Chips -->
       <div class="search-chips-row">
+        <button class="search-chip" id="chip-detect-loc" style="border-color: rgba(16, 185, 129, 0.4); color: #34d399; background: rgba(16, 185, 129, 0.08);">
+          <i class="fa-solid fa-location-crosshairs"></i> My Location
+        </button>
         <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Popular:</span>
         <button class="search-chip" data-city="London"><span class="chip-code">GB</span> London</button>
         <button class="search-chip" data-city="New York"><span class="chip-code">US</span> New York</button>
